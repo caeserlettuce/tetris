@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <title>tetris</title>
+    <link rel="icon" type="image/svg" href="assets/chili.svg">
+
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+
+
+    <svg class="board" viewBox="0 0 10 20">
+      <g class="background">
+        <rect class="dark" x="0" y="0" width="10" height="20" />
+        <rect class="light" x="0" y="0" width="0.1" height="20" />
+        <rect class="light" x="0.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="1.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="2.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="3.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="4.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="5.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="6.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="7.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="8.95" y="0" width="0.1" height="20" />
+        <rect class="light" x="9.9" y="0" width="0.1" height="20" />
+        <rect class="light" x="0" y="0" width="10" height="0.1" />
+        <rect class="light" x="0" y="0.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="1.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="2.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="3.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="4.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="5.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="6.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="7.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="8.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="9.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="10.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="11.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="12.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="13.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="14.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="15.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="16.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="17.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="18.95" width="10" height="0.1" />
+        <rect class="light" x="0" y="19.95" width="10" height="0.1" />
+      </g>
+      <g class="template">
+        <g style="transform: translate(0px, 0px)" class="block">
+          <rect x="0" y="0" width="1" height="1" class="dark"/>
+          <rect x="0.1" y="0.1" width="0.8" height="0.8" class="light"/>
+        </g>
+        <g style="transform: translate(0px, 0px)" class="ghost block">
+          <rect x="0" y="0" width="1" height="0.1" class="light"/>
+          <rect x="0" y="0.9" width="1" height="0.1" class="light"/>
+          <rect x="0" y="0" width="0.1" height="1" class="light"/>
+          <rect x="0.9" y="0" width="0.1" height="1" class="light"/>
+        </g>
+        <g style="transform: translate(0px, 0px)" class="debug block">
+          <rect x="0" y="0" width="1" height="0.1" />
+          <rect x="0" y="0.9" width="1" height="0.1" />
+          <rect x="0" y="0" width="0.1" height="1" />
+          <rect x="0.9" y="0" width="0.1" height="1" />
+        </g>
+      </g>
+      <g class="active-board">
+        <!--where the actual stuff is-->
+      </g>
+      
+
+    </svg>
+
+    <div class="home">
+      <h1>tetris</h1>
+      <h3>its tetris the fun game</h3>
+
+      <p class="button" onclick="start_game_button()">start game</p>
+
+      <div class="divider"></div>
+
+      <h2>settings</h2>
+      <div class="template">
+        <svg class="toggle" viewBox="0 0 2 1" onclick="">
+          <circle cx="0.5" cy="0.5" r="0.5" class="background" />
+          <circle cx="1.5" cy="0.5" r="0.5" class="background" />
+          <rect x="0.5" y="0" width="1" height="1" class="background" />
+          <circle cx="0.5" cy="0.5" r="0.5" class="thumb" />
+        </svg>
+      </div>
+      <div class="settings">
+
+      </div>
+    </div>
+
+    <div class="pausemenu" style="display: none; opacity: 0;">
+      <h1>game is paused!</h1>
+      <h3>press ESC to unpause</h3>
+    </div>
+
+    <script src="db.js"></script>
+    <script src="keyboard.js"></script>
+    <script src="main.js"></script>
+  </body>
+</html>
