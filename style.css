@@ -32,6 +32,7 @@
   --toggle-thumb: #ffffff;
   --toggle-background-enabled: #3783f5;
   --pause-bg: #1b1b1b;
+  --board-scale: calc(90vh / 20);
 }
 
 /* funny colour */
@@ -170,9 +171,25 @@ body {
   fill: var(--debug-dark);
 }
 
-.board {
-  
-  height: 90vh;
+.tetris-stuff {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--board-scale) * 1);
+}
+
+.board { 
+  height: calc(var(--board-scale) * 20);
+}
+
+.side {
+  height: calc(var(--board-scale) * 4);
+}
+
+.side-wrapper h2 {
+  max-width: calc(var(--board-scale) * 4);
+  width: calc(var(--board-scale) * 4);
+  height: calc(var(--board-scale) * 1);
 }
 
 .template {
@@ -255,6 +272,7 @@ body {
   display: flex;
   align-items: center;
   cursor: pointer;
+  margin-top: 5px;
 }
 
 .setting h3 {
