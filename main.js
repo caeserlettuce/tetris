@@ -28,7 +28,8 @@ var gamesave = {
     "type": "yellow",
     "loc": [0,0],
     "rot": 0
-  }
+  },
+  "hold": false
 }
 
 if (windowWidth < windowHeight) {
@@ -61,6 +62,80 @@ function copy_json(json_tm) {
 
 function clear_active_board() {
   active_board.innerHTML = "";
+}
+
+
+function do_lines(board_in, width, height) {
+  var board = document.querySelector(board_in);
+  // for x lines
+  for (let i = 0; i < width; i++) {
+    var line_x = 0.95;
+    if (i == 0) {
+      line_x = 0;
+    } else if (i == width) {
+      line_x = (width - 1) + 0.9;
+    } else {
+      line_x += i - 1;
+    }
+    var node1 = document.querySelector(".template .light").cloneNode(true);
+    node1.setAttribute("width", 0.1);
+    node1.setAttribute("height", height);
+    node1.setAttribute("x", line_x);
+    node1.setAttribute("y", 0);
+    board.querySelector(".background").appendChild(node1);
+  }
+  var node2 = document.querySelector(".template .light").cloneNode(true);
+  node2.setAttribute("width", 0.1);
+  node2.setAttribute("height", height);
+  node2.setAttribute("x", width - 0.1);
+  node2.setAttribute("y", 0);
+  board.querySelector(".background").appendChild(node2);
+  
+  // for y lines
+  for (let i = 0; i < height; i++) {
+    var line_y = 0.95;
+    if (i == 0) {
+      line_y = 0;
+    } else if (i == height) {
+      line_y = (height - 1) + 0.9;
+    } else {
+      line_y += i - 1;
+    }
+    var node1 = document.querySelector(".template .light").cloneNode(true);
+    node1.setAttribute("width", width);
+    node1.setAttribute("height", 0.1);
+    node1.setAttribute("x", 0);
+    node1.setAttribute("y", line_y);
+    board.querySelector(".background").appendChild(node1);
+  }
+  var node2 = document.querySelector(".template .light").cloneNode(true);
+  node2.setAttribute("width", width);
+  node2.setAttribute("height", 0.1);
+  node2.setAttribute("x", 0);
+  node2.setAttribute("y", height - 0.1);
+  board.querySelector(".background").appendChild(node2);
+}
+
+function hold_board_change(width, height) {
+
+}
+
+function board_size(width, height) {
+  var selected_board = document.querySelector(".board-wrapper");
+
+  selected_board.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  selected_board.querySelector(".board .background").innerHTML = "";
+
+  var node = document.querySelector(".template .dark").cloneNode(true);
+  node.setAttribute("width", width);
+  node.setAttribute("height", height);
+  selected_board.querySelector(".board .background").appendChild(node)
+  
+  do_lines(".board", width, height);
+  do_lines(".hold-board", 4, 4);
+  hold_board_change(4, 4);
+
+  //document.querySelector(".funny-css").innerHTML = `:root {--board-scale: calc(90vh / ${height}) !important;} .board {height: calc(var(--board-scale) * ${height}) !important}`
 }
 
 function display_shape(shape) {
@@ -134,7 +209,7 @@ function check_lines() {
     lines[y].push(x);
   }
   for (i in lines) {
-    if (lines[i].length == 10) {
+    if (lines[i].length == board_width) {
       lines_clear.push(parseInt(i));
     }
   }
@@ -182,6 +257,21 @@ function display_game(game) {
 
   display_ghost_block(game["active piece"]);
   display_shape(game["active piece"]);
+
+  // hold pieces
+
+  if (gamesave["hold"] != false) {
+    console.log("hi")
+    var hp_points = get_piece_points(gamesave["hold"]);
+    for (i in hp_points) {
+      var x = hp_points[i][0];
+      var y = hp_points[i][1];
+      var node = document.querySelector(".template .block").cloneNode(true);
+      node.classList.add(gamesave["hold"]["type"]);
+      node.style = `transform: translate(${x}px, ${y}px);`;
+      document.querySelector(".hold-board").appendChild(node);
+    }
+  }
 }
 
 function piece_move(piece_in, direction) {
@@ -272,10 +362,10 @@ function check_bounds(piece) {
     if (inlist(loc_tm, static_bounds) == true) {
       final = false
     }
-    if (loc_tm[0] < 0 || loc_tm[0] > 9) {
+    if (loc_tm[0] < 0 || loc_tm[0] > (board_width - 1)) {
       final = false
     }
-    if (loc_tm[1] < 0 || loc_tm[1] > 19) {
+    if (loc_tm[1] < 0 || loc_tm[1] > (board_height - 1)) {
       final = false
     }
 
@@ -344,6 +434,7 @@ function game_speed(speed) {
 function start_game() {
 
   //add_static({"type": "lblue", "loc": [0,19], "rot": 0 })
+  board_size(board_width, board_height);
   new_piece(true);
   game_status = true;
   game_speed(500);
@@ -354,6 +445,9 @@ function start_game() {
 function start_game_button() {
   start_game();
   document.querySelector(".home").style.opacity = "0"
+  setTimeout( () => {
+      document.querySelector(".home").style.display = "none"
+  }, 250);
 }
 
 // create the buttons
@@ -440,7 +534,7 @@ function user_rotate() {
         // up against left wall
         in_left = true;
         console.log("left wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      } else if (points[i][0] > 9 - max_bounds[0]) {
+      } else if (points[i][0] > (board_width - 1) - max_bounds[0]) {
         // up against right wall
         in_right = true
         console.log("right wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
@@ -457,7 +551,7 @@ function user_rotate() {
       }
     } else if (in_right == true) {
       console.log("before", rotate_new["loc"][0]);
-      rotate_new["loc"][0] = 9 - max_bounds[0];  // as much tm
+      rotate_new["loc"][0] = (board_width - 1) - max_bounds[0];  // as much tm
       console.log("after", rotate_new["loc"][0]);
       var bounds_rotate_check_2 = check_bounds(rotate_new);
       if (bounds_rotate_check_2 == true) {
@@ -470,12 +564,12 @@ function user_rotate() {
 }
 
 function find_slam_height(data) {
-  var height_out = 20;
-  var height_try = 20;
+  var height_out = board_height;
+  var height_try = board_height;
   var height_found = false;
   var highest_point = data["loc"][1];
   var slam_new_try = copy_json(data);
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < board_height; i++) {
     height_try += -1;
     if (height_found == false) {
       height_out = height_try
@@ -500,7 +594,6 @@ function find_slam_height(data) {
   */
 
 function user_slam() {
-  
   var slam_height = find_slam_height(gamesave["active piece"]);
   console.log(slam_height)
   var slam_new = copy_json(gamesave["active piece"]);
@@ -509,8 +602,25 @@ function user_slam() {
   new_piece();
   clear_active_board();
   display_game(gamesave);
-  
+}
 
+function user_hold() {
+  // put active piece into hold
+  var active_piece = copy_json(gamesave["active piece"]);
+  if (gamesave["hold"] != false) {
+    // take piece out and make it active piece
+    gamesave["active piece"] = copy_json(gamesave["hold"]);
+    gamesave["active piece"]["loc"] = active_piece["loc"];
+  } else {
+    // new random piece
+    new_piece(true);
+  }
+  gamesave["hold"] = copy_json(active_piece);
+  var hp_bounds = get_piece_max_bounds(gamesave["hold"]);
+  hp_bounds[0] += 1;
+  hp_bounds[1] += 1;
+  document.querySelector("svg.hold").setAttribute()
+  gamesave["hold"]["loc"] = [1, 1];
 }
 
 document.addEventListener('keydown', (event) => {
@@ -548,7 +658,9 @@ document.addEventListener('keydown', (event) => {
         user_slam();
       }
     } else if (keyid == 67) { // c
-  
+      if (game_paused == false) {
+        user_hold();
+      }
     }
   }
 

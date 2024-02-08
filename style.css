@@ -178,8 +178,11 @@ body {
   gap: calc(var(--board-scale) * 1);
 }
 
-.board { 
-  height: calc(var(--board-scale) * 20);
+.board-wrapper { 
+  height: auto;
+  width: auto;
+  max-height: 90vh;
+  max-width: 90vw;
 }
 
 .side {

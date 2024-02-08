@@ -10,63 +10,24 @@
   <body>
 
     <div class="tetris-stuff">
-      <div class="side-wrapper">
-        <h2>hi</h2>
-        <svg class="side hold" viewBox="0 0 4 4">
-          <g class="background">
-            <rect class="dark" x="0" y="0" width="4" height="4" />
-            <rect class="light" x="0" y="0" width="0.1" height="4" />
-            <rect class="light" x="0.95" y="0" width="0.1" height="4" />
-            <rect class="light" x="1.95" y="0" width="0.1" height="4" />
-            <rect class="light" x="2.95" y="0" width="0.1" height="4" />
-            <rect class="light" x="3.9" y="0" width="0.1" height="4" />
-            <rect class="light" x="0" y="0" width="4" height="0.1" />
-            <rect class="light" x="0" y="0.95" width="4" height="0.1" />
-            <rect class="light" x="0" y="1.95" width="4" height="0.1" />
-            <rect class="light" x="0" y="2.95" width="4" height="0.1" />
-            <rect class="light" x="0" y="3.9" width="4" height="0.1" />
-          </g>
-  
-        </svg>
-      </div>
-      
 
-      <svg class="board" viewBox="0 0 10 20">
-        <g class="background">
-          <rect class="dark" x="0" y="0" width="10" height="20" />
-          <rect class="light" x="0" y="0" width="0.1" height="20" />
-          <rect class="light" x="0.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="1.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="2.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="3.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="4.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="5.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="6.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="7.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="8.95" y="0" width="0.1" height="20" />
-          <rect class="light" x="9.9" y="0" width="0.1" height="20" />
-          <rect class="light" x="0" y="0" width="10" height="0.1" />
-          <rect class="light" x="0" y="0.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="1.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="2.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="3.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="4.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="5.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="6.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="7.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="8.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="9.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="10.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="11.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="12.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="13.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="14.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="15.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="16.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="17.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="18.95" width="10" height="0.1" />
-          <rect class="light" x="0" y="19.95" width="10" height="0.1" />
+      <svg class="board-wrapper" viewBox="0 0 10 20">
+        <g class="hold-board">
+          <g class="background">
+
+          </g>
+          <g class="active-hold-board">
+
+          </g>
+
         </g>
+        
+        <g class="board">
+          <g class="background">
+
+          </g>
+        </g>
+        
         <g class="template">
           <g style="transform: translate(0px, 0px)" class="block">
             <rect x="0" y="0" width="1" height="1" class="dark"/>
@@ -84,6 +45,8 @@
             <rect x="0" y="0" width="0.1" height="1" />
             <rect x="0.9" y="0" width="0.1" height="1" />
           </g>
+          <rect class="dark" x="0" y="0" width="10" height="20" />
+          <rect class="light" x="0" y="0" width="0.1" height="20" />
         </g>
         <g class="active-board">
           <!--where the actual stuff is-->
@@ -91,11 +54,6 @@
         
 
       </svg>
-
-      <div class="side-wrapper">
-
-        <h2>tetris</h2>
-      </div>
     </div>
 
     <div class="home">
@@ -124,6 +82,10 @@
       <h1>game is paused!</h1>
       <h3>press ESC to unpause</h3>
     </div>
+
+    <style class="funny-css">
+
+    </style>
 
     <script src="db.js"></script>
     <script src="keyboard.js"></script>
