@@ -7,11 +7,17 @@ var active_bounds = [];
 var setting_choices = {};
 var show_debug = false;
 var show_ghost = true;
+var show_hold = true;
+var show_next = true;
+var show_replay = true;
 var board_width = 10;
 var board_height = 20;
-var game_score = 0;
+var side_size = 5;
+var next_height = 4;
+var next_amount = 4;
 var game_paused = false;
 var game_status = false;
+var just_held = false;
 var game_interval;
 var slam_interval;
 var timeouts = {
@@ -19,18 +25,12 @@ var timeouts = {
 };
 var key_delays = {};
 var active_new;
-var gamesave = {
-  "static": [
-    // example
+var gamesave = {}; // find the default settings in the start_game() function
+var game_replay = {}; // same with this one
 
-  ],
-  "active piece": {
-    "type": "yellow",
-    "loc": [0,0],
-    "rot": 0
-  },
-  "hold": false
-}
+var replay_gamesave = {}; // for replaying
+var replay_timeouts = [];
+var replay_active = false;
 
 if (windowWidth < windowHeight) {
   // MOBILE!!!
@@ -60,13 +60,53 @@ function copy_json(json_tm) {
   return JSON.parse(JSON.stringify(json_tm))
 }
 
+function doublefy(number) {
+  var out = `${number}`;
+  if (out.length == 1) {
+    out = `0${out}`;
+  }
+  return out
+}
+
+function show_page(query) {
+  document.querySelector(query).style.display = "";
+  setTimeout( () => {
+    document.querySelector(query).style.opacity = "1";
+  }, 10);
+}
+
+function hide_page(query) {
+  document.querySelector(query).style.opacity = "0";
+  setTimeout( () => {
+      document.querySelector(query).style.display = "none";
+  }, 250);
+}
+
+function fix_contenteditable(query) {
+  var ce = document.querySelector(query);
+  ce.addEventListener('paste', function (e) {
+    e.preventDefault()
+    var text = e.clipboardData.getData('text/plain')
+    document.execCommand('insertText', false, text)
+  })
+}
+
+
 function clear_active_board() {
   active_board.innerHTML = "";
+  document.querySelector(".active-hold-board").innerHTML = "";
+  document.querySelector(".active-next-board").innerHTML = "";
 }
 
 
 function do_lines(board_in, width, height) {
   var board = document.querySelector(board_in);
+
+  var node = document.querySelector(".template .dark").cloneNode(true);
+  node.setAttribute("width", width);
+  node.setAttribute("height", height);
+  board.querySelector(".background").appendChild(node)
+  
   // for x lines
   for (let i = 0; i < width; i++) {
     var line_x = 0.95;
@@ -116,24 +156,27 @@ function do_lines(board_in, width, height) {
   board.querySelector(".background").appendChild(node2);
 }
 
-function hold_board_change(width, height) {
 
-}
-
-function board_size(width, height) {
+function board_size(game, width, height) {
   var selected_board = document.querySelector(".board-wrapper");
 
-  selected_board.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  selected_board.setAttribute("viewBox", `0 0 ${width + (side_size * 2) + 2} ${height}`);
   selected_board.querySelector(".board .background").innerHTML = "";
+  selected_board.querySelector(".board").style = `transform: translate(${side_size + 1}px, 0px)`
 
-  var node = document.querySelector(".template .dark").cloneNode(true);
-  node.setAttribute("width", width);
-  node.setAttribute("height", height);
-  selected_board.querySelector(".board .background").appendChild(node)
-  
   do_lines(".board", width, height);
-  do_lines(".hold-board", 4, 4);
-  hold_board_change(4, 4);
+  do_lines(".hold-board", side_size, side_size);
+  do_lines(".next-board", side_size, next_height * game["next pieces"].length);
+  selected_board.querySelector(".next-board .background").style = `transform: translate(${side_size + 2 + board_width}px, 2px)`;
+  selected_board.querySelector(".next-board .active-next-board").style = `transform: translate(${side_size + 2 + board_width}px, 2px)`;
+  selected_board.querySelector(".hold-board .side-text").setAttribute("y", `${side_size + 1}`)
+  selected_board.querySelector(".side-text.score").setAttribute("x", `${side_size + 2 + board_width}`);
+  
+  console.log((next_height * game["next pieces"].length) + 2)
+  if ((next_height * game["next pieces"].length) + 2 > height) {
+    selected_board.setAttribute("viewBox", `0 0 ${width + (side_size * 2) + 2} ${(next_height * game["next pieces"].length) + 2}`);
+  }
+  
 
   //document.querySelector(".funny-css").innerHTML = `:root {--board-scale: calc(90vh / ${height}) !important;} .board {height: calc(var(--board-scale) * ${height}) !important}`
 }
@@ -158,6 +201,9 @@ function display_ghost_debug(points, light) {
   for (i in points) {
     var x = points[i][0];
     var y = points[i][1];
+    if (light == true) {
+      y += gamesave["active piece"]["loc"][1];
+    }
     var node = document.querySelector(".template .debug").cloneNode(true);
     for (i in node.querySelectorAll("rect")) {
       var shape = node.querySelectorAll("rect")[i]
@@ -196,46 +242,50 @@ function display_ghost_block(data) {
 
 function check_lines() {
 
-  var lines = {};
-  var lines_clear = [];
+  if (replay_active == false) {
+
+    var lines = {};
+    var lines_clear = [];
+    
+    for (i in gamesave["static"]) {
+      var x = gamesave["static"][i]["loc"][0];
+      var y = gamesave["static"][i]["loc"][1];
   
-  for (i in gamesave["static"]) {
-    var x = gamesave["static"][i]["loc"][0];
-    var y = gamesave["static"][i]["loc"][1];
-
-    if (!lines[y]) {
-      lines[y] = [];
-    }
-    lines[y].push(x);
-  }
-  for (i in lines) {
-    if (lines[i].length == board_width) {
-      lines_clear.push(parseInt(i));
-    }
-  }
-  console.log(lines);
-  console.log(lines_clear);
-
-  var new_static = [];
-  var lines_cleared = lines_clear.length;
-
-  for (i in gamesave["static"]) {
-    var y = gamesave["static"][i]["loc"][1];
-    if (lines_clear.includes(y)) {
-      console.log(y);
-      game_score += 1;
-
-      // do NOT add it because it is being removed
-
-    } else {
-      var new_piece_entry = copy_json(gamesave["static"][i]);
-      if (y < lines_clear[0]) {
-        new_piece_entry["loc"][1] += lines_cleared;
+      if (!lines[y]) {
+        lines[y] = [];
       }
-      new_static.push(new_piece_entry);
+      lines[y].push(x);
     }
+    for (i in lines) {
+      if (lines[i].length == board_width) {
+        lines_clear.push(parseInt(i));
+      }
+    }
+    console.log(lines);
+    console.log(lines_clear);
+  
+    var new_static = [];
+    var lines_cleared = lines_clear.length;
+  
+    for (i in gamesave["static"]) {
+      var y = gamesave["static"][i]["loc"][1];
+      if (lines_clear.includes(y)) {
+        console.log(y);
+        gamesave["score"] += 1;
+  
+        // do NOT add it because it is being removed
+  
+      } else {
+        var new_piece_entry = copy_json(gamesave["static"][i]);
+        if (y < lines_clear[0]) {
+          new_piece_entry["loc"][1] += lines_cleared;
+        }
+        new_static.push(new_piece_entry);
+      }
+    }
+    gamesave["static"] = copy_json(new_static);
   }
-  gamesave["static"] = copy_json(new_static);
+
 }
 
 function display_game(game) {
@@ -254,24 +304,95 @@ function display_game(game) {
     node.style = `transform: translate(${x}px, ${y}px);`;
     active_board.appendChild(node);
   }
-
-  display_ghost_block(game["active piece"]);
+  
+  if (replay_active == false) {
+    display_ghost_block(game["active piece"]);
+  }
   display_shape(game["active piece"]);
+  
 
-  // hold pieces
-
-  if (gamesave["hold"] != false) {
-    console.log("hi")
-    var hp_points = get_piece_points(gamesave["hold"]);
+  // hold board
+  if (game["hold"] != false) {
+    //console.log("hi")
+    document.querySelector(".active-hold-board").innerHTML = "";
+    var hp_points = get_piece_points(game["hold"]);
+    var hp_bounds = get_piece_max_bounds(game["hold"]);
+    var x_translate = (side_size / 2) - ( (hp_bounds[0] + 1) / 2);
+    var y_translate = (side_size / 2) - ( (hp_bounds[1] + 1) / 2);
+    console.log(hp_bounds[0], hp_bounds[1]);
+    
     for (i in hp_points) {
-      var x = hp_points[i][0];
-      var y = hp_points[i][1];
+      var x = hp_points[i][0] + x_translate;
+      var y = hp_points[i][1] + y_translate;
       var node = document.querySelector(".template .block").cloneNode(true);
-      node.classList.add(gamesave["hold"]["type"]);
+      if (just_held == true) {
+        node.classList.add("disabled");
+      } else {
+        node.classList.add(game["hold"]["type"]);
+      }
       node.style = `transform: translate(${x}px, ${y}px);`;
-      document.querySelector(".hold-board").appendChild(node);
+      document.querySelector(".active-hold-board").appendChild(node);
     }
   }
+
+  // next pieces
+
+  document.querySelector(".active-next-board").innerHTML = "";
+  for (d in game["next pieces"]) {
+    var np_points = get_piece_points(game["next pieces"][d]);
+    var np_bounds = get_piece_max_bounds(game["next pieces"][d]);
+    var x_translate = (side_size / 2) - ( (np_bounds[0] + 1) / 2);
+    var y_translate = (next_height / 2) - ( (np_bounds[1] + 1) / 2) + (next_height * d);
+    //console.log(np_bounds[0], np_bounds[1]);
+    
+    //console.log(JSON.stringify(game["next pieces"][d]))
+
+    for (e in np_points) {
+      var x = np_points[e][0] + x_translate;
+      var y = np_points[e][1] + y_translate;
+      var node = document.querySelector(".template .block").cloneNode(true);
+      node.classList.add(game["next pieces"][d]["type"]);
+      node.style = `transform: translate(${x}px, ${y}px);`;
+      document.querySelector(".active-next-board").appendChild(node);
+    }
+
+
+  }
+  document.querySelector(".board-wrapper .side-text.score").innerHTML = `score: ${game["score"]}`;
+
+
+
+
+  if (show_debug == true) {
+    display_ghost_debug(active_bounds, true);
+    display_ghost_debug(static_bounds, false);
+  }
+
+  if (replay_active == false) {
+    if (setting_choices["highscore"] < game["score"]) {
+      setting_choices["highscore"] = game["score"];
+    }
+    localStorage.setItem("dapuglol-tetris", JSON.stringify(setting_choices));
+  }
+
+
+
+  
+  // MAKE SURE THIS STAYS AT THE END!!!
+  
+  if (replay_active == false) {
+    if (show_replay == true) {
+      game_replay["log"].push({
+        "time": new Date(),
+        "game": copy_json(game)
+      });
+    }
+  }
+  // DONT PUT ANYTHING ELSE BELOW HERE!!!!!  
+
+  // btoa: encode to base64
+  // atob: decode to string
+
 }
 
 function piece_move(piece_in, direction) {
@@ -377,9 +498,12 @@ function check_bounds(piece) {
 function new_piece(first) {
   if (first != true) {
     add_static(gamesave["active piece"]);
+    just_held = false;
   }
   var the_piece = rand(piece_types);
-  gamesave["active piece"] = {"type": `${the_piece}`, "rot": 0, "loc": [0,0]}
+  gamesave["next pieces"].push({"type": `${the_piece}`, "rot": 0, "loc": [0,0]})
+  gamesave["active piece"] = copy_json(gamesave["next pieces"][0]);
+  gamesave["next pieces"].splice(0, 1);
   var piece_bounds = get_piece_max_bounds(gamesave["active piece"]);
   gamesave["active piece"]["loc"][0] = Math.floor(board_width / 2) - (Math.floor(piece_bounds[0] / 2) + 1 ); // put it at the center
 }
@@ -389,6 +513,15 @@ function new_piece(first) {
 function game_over() {
   clearInterval(game_interval);
   game_status = false;
+
+  if (show_replay == true) {
+    var encoded_replay = btoa(JSON.stringify(game_replay));
+    document.querySelector(".gameover .replay-data p").innerHTML = encoded_replay;
+    document.querySelector(".home .replay-data p").innerHTML = encoded_replay;
+  }
+  document.querySelector(".scoretm .score").innerHTML = gamesave["score"];
+
+  show_page(".gameover");
 }
 
 function game_speed(speed) {
@@ -415,10 +548,7 @@ function game_speed(speed) {
   
         clear_active_board();
         display_game(gamesave);
-        if (show_debug == true) {
-          display_ghost_debug(active_bounds, true);
-          display_ghost_debug(static_bounds, false);
-        }
+        
         
       } catch (err) {
         console.error(err);
@@ -433,21 +563,51 @@ function game_speed(speed) {
 
 function start_game() {
 
+  var date_now = new Date();
+  game_paused = false;
+  gamesave = {
+    "static": [],
+    "active piece": {},
+    "next pieces": [],
+    "hold": false,
+    "score": 0,
+    "width": board_width,
+    "height": board_height
+  }
+  game_replay = {
+    "name": `${date_now.getFullYear()}-${doublefy(date_now.getMonth() + 1)}-${doublefy(date_now.getDate())} ${doublefy(date_now.getHours())}:${doublefy(date_now.getMinutes())}:${doublefy(date_now.getSeconds())}`,
+    "start": date_now,
+    "log": []
+  }
+  for (let i = 0; i < next_amount; i++) {
+    var the_piece = rand(piece_types);
+    gamesave["next pieces"].push({"type": `${the_piece}`, "rot": 0, "loc": [0,0]});
+  }
+
   //add_static({"type": "lblue", "loc": [0,19], "rot": 0 })
-  board_size(board_width, board_height);
+  board_size(gamesave, board_width, board_height);
   new_piece(true);
   game_status = true;
   game_speed(500);
   
+  clear_active_board();
+  display_game(gamesave);
 
 }
 
 function start_game_button() {
   start_game();
-  document.querySelector(".home").style.opacity = "0"
+  hide_page(".home");
+  hide_page(".pausemenu");
+  hide_page(".gameover");
+}
+
+function show_start_screen() {
+  show_page(".home");
   setTimeout( () => {
-      document.querySelector(".home").style.display = "none"
-  }, 250);
+    hide_page(".pausemenu");
+    hide_page(".gameover");
+  }, 100)
 }
 
 // create the buttons
@@ -487,6 +647,7 @@ var localstorage = localStorage.getItem("dapuglol-tetris");
 var localstorage = JSON.parse(localstorage);
 
 for (i in localstorage) {
+  console.log(i, localstorage[i])
   var the_id = -1;
   for (e in settings) {
     if (settings[e]["id"] == i) {
@@ -496,10 +657,14 @@ for (i in localstorage) {
   if (localstorage[i] == true) {
     document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.add("enabled");
     settings[the_id].enable();
-  } else if (localstorage[i] == true) {
+  } else if (localstorage[i] == false) {
     document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.remove("enabled");
     settings[the_id].disable();
   }
+  setting_choices = copy_json(localstorage);
+}
+if (!setting_choices["highscore"]) {
+  setting_choices["highscore"] = 0;
 }
 
 function user_move(direction) {
@@ -606,21 +771,23 @@ function user_slam() {
 
 function user_hold() {
   // put active piece into hold
-  var active_piece = copy_json(gamesave["active piece"]);
-  if (gamesave["hold"] != false) {
-    // take piece out and make it active piece
-    gamesave["active piece"] = copy_json(gamesave["hold"]);
-    gamesave["active piece"]["loc"] = active_piece["loc"];
-  } else {
-    // new random piece
-    new_piece(true);
+  if (just_held == false) {
+    just_held = true;
+    var active_piece = copy_json(gamesave["active piece"]);
+    if (gamesave["hold"] != false) {
+      // take piece out and make it active piece
+      gamesave["active piece"] = copy_json(gamesave["hold"]);
+      gamesave["active piece"]["loc"] = active_piece["loc"];
+    } else {
+      // new random piece
+      new_piece(true);
+    }
+    gamesave["hold"] = copy_json(active_piece);
+    var hp_bounds = get_piece_max_bounds(gamesave["hold"]);
+    hp_bounds[0] += 1;
+    hp_bounds[1] += 1;
+    gamesave["hold"]["loc"] = [0, 0];
   }
-  gamesave["hold"] = copy_json(active_piece);
-  var hp_bounds = get_piece_max_bounds(gamesave["hold"]);
-  hp_bounds[0] += 1;
-  hp_bounds[1] += 1;
-  document.querySelector("svg.hold").setAttribute()
-  gamesave["hold"]["loc"] = [1, 1];
 }
 
 document.addEventListener('keydown', (event) => {
@@ -659,7 +826,17 @@ document.addEventListener('keydown', (event) => {
       }
     } else if (keyid == 67) { // c
       if (game_paused == false) {
-        user_hold();
+        if (show_hold == true) {
+          user_hold();
+          clear_active_board();
+          display_game(gamesave);
+        }
+      }
+    }
+  } else {
+    if (keyid == 27) {  // esc
+      if (replay_active == true) {
+        end_replay();
       }
     }
   }
@@ -700,15 +877,87 @@ window.addEventListener("keypressed", function (event) {
   case 37:        // left
     var key = 37;
     //console.log(key_delays[`${key}`]);
-    do_thingy(37, () => {if (game_paused == false) { user_move([-1,0]) }} );
+    do_thingy(37, () => {if (game_paused == false && game_status == true) { user_move([-1,0]) }} );
     break;
   case 39:        // right
-    do_thingy(39, () => {if (game_paused == false) { user_move([1,0]) }} );
+    do_thingy(39, () => {if (game_paused == false && game_status == true) { user_move([1,0]) }} );
     break;
   case 40:        // down
-    do_thingy(40, () => {if (game_paused == false) { user_move([0,1]) }} );
+    do_thingy(40, () => {if (game_paused == false && game_status == true) { user_move([0,1]) }} );
     break;
   }
   //console.log(event.keyCode);
 }, false);
 
+
+
+// REPLAY STUFF
+
+
+fix_contenteditable(".home .replay-data p");
+
+
+function end_replay() {
+  for (t in replay_timeouts) {
+    clearTimeout(replay_timeouts[t])
+  }
+  replay_active = false;
+  show_start_screen();
+}
+
+function play_replay() {
+
+  // PLAY THE REPLAY
+
+  try {
+    var raw_data = document.querySelector(".replay-data p").innerHTML;
+    replay_gamesave = JSON.parse(atob(raw_data));
+    var start_time = Date.parse(replay_gamesave["start"]);
+    replay_active = true;
+    var last_timetm = 0;
+
+    var speed = parseFloat(document.querySelector(".replay-speed").value);
+    var speed_min = parseFloat(document.querySelector(".replay-speed").getAttribute("min"));
+    var speed_max = parseFloat(document.querySelector(".replay-speed").getAttribute("max"));
+    if (speed < speed_min) {
+      speed = speed_min;
+    } else if (speed > speed_max) {
+      speed = speed_max;
+    }
+
+    board_size(replay_gamesave["log"][0]["game"], replay_gamesave["log"][0]["game"]["width"], replay_gamesave["log"][0]["game"]["height"]);
+    clear_active_board();
+
+    hide_page(".home");
+
+    setTimeout( () => {
+      for (y in replay_gamesave["log"]) {
+        var time = (Date.parse(replay_gamesave["log"][y]["time"]) - start_time );
+        //console.log(time);
+        replay_timeouts.push(
+          setTimeout( (index) => {
+            //console.log("hi");
+            var the_game = copy_json(replay_gamesave["log"][parseInt(index)]["game"]);
+            console.log(parseInt(index));
+            clear_active_board();
+            display_game(the_game);
+          }, time / speed, `${y}`)
+        );
+        last_timetm = time / speed;
+      }
+      replay_timeouts.push(setTimeout(end_replay, last_timetm + 1000));
+  
+    }, 1000);
+
+    
+
+  } catch (err) {
+    console.error(err)
+    show_page(".replay-error");
+    setTimeout( () => {
+      hide_page(".replay-error");
+    }, 3000);
+  }
+
+
+}

@@ -20,6 +20,8 @@
   --purple-light: #f742f7;
   --purple-dark: #e03de0;
   --ghost-light: #535353;
+  --disabled-light: #535353;
+  --disabled-dark: #464646;
   --debug-light: #ffffff;
   --debug-dark: #938bff;
   --background-light: #3a3a3a;
@@ -33,6 +35,9 @@
   --toggle-background-enabled: #3783f5;
   --pause-bg: #1b1b1b;
   --board-scale: calc(90vh / 20);
+  --replay-data-bg: #2e2e2e;
+  --replay-data-border: #383838;
+  --error-txt: #ff6d6d;
 }
 
 /* funny colour */
@@ -61,6 +66,10 @@
 @font-face {
   src: url(assets/Roboto-BlackItalic.ttf);
   font-family: roboto_black_italic;
+}
+@font-face {
+  src: url(assets/UbuntuMono-Regular.ttf);
+  font-family: ubuntu_mono;
 }
 
 .push { /* pushes flexbox child to the right */
@@ -170,11 +179,22 @@ body {
 .debug .dark {
   fill: var(--debug-dark);
 }
+.disabled .light {
+  fill: var(--disabled-light);
+}
+.disabled .dark {
+  fill: var(--disabled-dark);
+}
 
 .tetris-stuff {
+  position: fixed;
+  top: 0px;
+  left: 0px;
   width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: calc(var(--board-scale) * 1);
 }
 
@@ -201,7 +221,8 @@ body {
 
 .home {
   width: 100vw;
-  height: 100vh;
+  height: auto;
+  min-height: 100vh;
   position: fixed;
   top: 0px;
   left: 0px;
@@ -209,6 +230,8 @@ body {
   text-align: center;
   transition-duration: 250ms;
   opacity: 1;
+  overflow-y: scroll;
+  transition-duration: 250ms;
 }
 .home h1 {
   text-align: center;
@@ -269,6 +292,7 @@ body {
 
 .settings {
   margin-top: 0.75em;
+  margin-bottom: 0.75em;
   display: inline-block;
 }
 .setting {
@@ -282,7 +306,6 @@ body {
   font-size: 1.25em;
   margin: 0px;
   margin-left: 5px;
-  user-select: none;
 }
 
 .pausemenu {
@@ -297,4 +320,94 @@ body {
   flex-direction: column;
   background-color: var(--pause-bg);
   transition-duration: 250ms;
+}
+
+.side-text {
+  font: normal 0.6px roboto_bold;
+  fill: var(--main-txt);
+}
+
+.gameover {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background: var(--main-bg);
+  text-align: center;
+  transition-duration: 250ms;
+  overflow-y: scroll;
+}
+
+.gameover h1 {
+  margin-top: 0.5em;
+}
+
+.gameover h2.scoretm {
+  margin-top: 2em;
+  margin-bottom: 3em;
+  color: var(--home-txt-2);
+}
+
+.gameover h2 {
+  margin-top: 2em;
+}
+
+.replay-data {
+  background-color: var(--replay-data-bg);
+  border: 2px solid var(--replay-data-border);
+  border-radius: 10px;
+  display: inline-block;
+  margin-top: 10px;
+}
+.gameover .replay-data {
+  padding: 20px;
+  padding-right: 10px;
+}
+.replay-data p {
+  font-family: ubuntu_mono;
+  margin: 0px;
+  cursor: text;
+  max-width: 30vw;
+  max-height: 30vh;
+  word-break: break-all;
+  overflow-y: scroll !important;
+  padding: 20px;
+}
+.gameover .replay-data p {
+  padding: 0px;
+}
+.gameover .replay-stuff h3 {
+  margin-top: 1em;
+  margin-bottom: 3em;
+}
+
+.home .replay-stuff h3 {
+  margin-top: 1em;
+}
+.home .replay-data p {
+  min-width: 1em;
+  min-height: 1em;
+  word-break: break-all;
+  max-width: 20vw;
+  max-height: 20vh;
+}
+
+.replay-error {
+  color: var(--error-txt) !important;
+  transition-duration: 250ms;
+}
+
+input {
+  background-color: var(--replay-data-bg);
+  border: 1px solid var(--replay-data-border);
+  font-size: 1.25em;
+  color: var(--main-txt);
+  width: 3em;
+  border-radius: 5px;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
