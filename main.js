@@ -655,11 +655,15 @@ for (i in localstorage) {
     }
   }
   if (localstorage[i] == true) {
-    document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.add("enabled");
-    settings[the_id].enable();
+    if (document.querySelector(`.toggle[ja_id="${the_id}"]`)) {
+      document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.add("enabled");
+      settings[the_id].enable();
+    }
   } else if (localstorage[i] == false) {
-    document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.remove("enabled");
-    settings[the_id].disable();
+    if (document.querySelector(`.toggle[ja_id="${the_id}"]`)) {
+      document.querySelector(`.toggle[ja_id="${the_id}"]`).classList.remove("enabled");
+      settings[the_id].disable();
+    }
   }
   setting_choices = copy_json(localstorage);
 }
