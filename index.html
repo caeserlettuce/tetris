@@ -85,6 +85,8 @@
 
       </div>
       
+      <p class="button" onclick="open_custom()">customise the game MORE!</p>
+
       <div class="replay-stuff">
         <div class="divider"></div>
         <h1>replay games</h1>
@@ -145,8 +147,43 @@
       <p class="button" onclick="show_start_screen()">go to home page</p>
     </div>
 
+
+    <div class="game-custom" style="display: none; opacity: 0;">
+      <h1>game customisation</h1>
+      <h2 class="secondary">custom the game to your heart's content</h2>
+      <p class="button" onclick="close_custom()">save & close settings</p>
+      <p class="button red" onclick="reset_settings()">reset to defaults</p>
+      <div class="divider" style="margin-top: 2em; margin-bottom: 0.5em"></div>
+      <h2>colour customisation</h2>
+      <div class="colour-list">
+        <div class="template">
+          <div class="colour">
+            <input type="color">
+            <p>hello</p>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h2 style="margin-top: 0.3em;">value customisation</h2>
+      <div class="value-list">
+        <div class="template">
+          <div class="value">
+            <input type="number">
+            <p>hello</p>
+          </div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h1>custom css</h1>
+      <div class="custom-css">
+        <p contenteditable></p>
+      </div>
+    </div>
+
     <style class="funny-css"></style>
     <style class="funny-css2"></style>
+    <style class="funny-css3"></style>
+    <style class="funny-css4"></style>
 
     <script src="db.js"></script>
     <script src="keyboard.js"></script>

@@ -19,6 +19,7 @@ var start_speed = 500;
 var speed_increase = 1.125;
 var game_paused = false;
 var game_status = false;
+var game_end = false;
 var just_held = false;
 var game_interval;
 var slam_interval;
@@ -33,6 +34,10 @@ var game_replay = {}; // same with this one
 var replay_gamesave = {}; // for replaying
 var replay_timeouts = [];
 var replay_active = false;
+var custom_open = false;
+var original_colours;
+var original_values = {};
+var original_for_replay = {};
 
 if (windowWidth < windowHeight) {
   // MOBILE!!!
@@ -68,6 +73,63 @@ function doublefy(number) {
     out = `0${out}`;
   }
   return out
+}
+
+function get_css_vars() {
+  var out = {};
+  var arr_tm = Array.from(document.styleSheets)
+  .filter(
+    sheet =>
+      sheet.href === null || sheet.href.startsWith(window.location.origin)
+  )
+  .reduce(
+    (acc, sheet) =>
+      (acc = [
+        ...acc,
+        ...Array.from(sheet.cssRules).reduce(
+          (def, rule) =>
+            (def =
+              rule.selectorText === ":root"
+                ? [
+                    ...def,
+                    ...Array.from(rule.style).filter(name =>
+                      name.startsWith("--")
+                    )
+                  ]
+                : def),
+          []
+        )
+      ]),
+    []
+  );
+
+  for (i in arr_tm) {
+    var val = getComputedStyle(document.documentElement).getPropertyValue(arr_tm[i]);
+    if (val.split("")[0] == "#") {
+      out[arr_tm[i]] = val;
+    }
+    
+  }
+  return out
+}
+
+original_colours = get_css_vars();
+
+for (i in customs) {
+  original_values[customs[i]["id"]] = customs[i].getvalue();
+}
+
+
+function save_settings() {
+  localStorage.setItem("dapuglol-tetris", JSON.stringify(setting_choices));
+}
+
+if (!setting_choices["customs"]) {
+  setting_choices["customs"] = {};
+}
+
+if (!setting_choices["customs"]["colours"]) {
+  setting_choices["customs"]["colours"] = {};
 }
 
 function show_page(query) {
@@ -406,7 +468,7 @@ function display_game(game) {
     if (setting_choices["highscore"] < game["score"]) {
       setting_choices["highscore"] = game["score"];
     }
-    localStorage.setItem("dapuglol-tetris", JSON.stringify(setting_choices));
+    save_settings();
   }
 
 
@@ -548,6 +610,7 @@ function new_piece(first) {
 function game_over() {
   clearInterval(game_interval);
   game_status = false;
+  game_end = true;
 
   if (show_replay == true) {
     var encoded_replay = btoa(JSON.stringify(game_replay));
@@ -612,6 +675,7 @@ function start_game() {
   game_replay = {
     "name": `${date_now.getFullYear()}-${doublefy(date_now.getMonth() + 1)}-${doublefy(date_now.getDate())} ${doublefy(date_now.getHours())}:${doublefy(date_now.getMinutes())}:${doublefy(date_now.getSeconds())}`,
     "start": date_now,
+    "custom settings": copy_json(setting_choices),
     "log": []
   }
   for (let i = 0; i < next_amount; i++) {
@@ -635,6 +699,7 @@ function start_game_button() {
   hide_page(".home");
   hide_page(".pausemenu");
   hide_page(".gameover");
+  game_end = false;
 }
 
 function show_start_screen() {
@@ -642,6 +707,7 @@ function show_start_screen() {
   setTimeout( () => {
     hide_page(".pausemenu");
     hide_page(".gameover");
+    game_end = false;
   }, 100)
 }
 
@@ -675,11 +741,17 @@ function toggle_button(id) {
     settings[id].disable();
     setting_choices[settings[id]["id"]] = false;
   }
-  localStorage.setItem("dapuglol-tetris", JSON.stringify(setting_choices));
+  save_settings();
 }
 
 var localstorage = localStorage.getItem("dapuglol-tetris");
-var localstorage = JSON.parse(localstorage);
+
+try {
+  localstorage = JSON.parse(localstorage);
+} catch (err) {
+  localstorage = {};
+}
+
 
 for (i in localstorage) {
   console.log(i, localstorage[i])
@@ -874,14 +946,24 @@ document.addEventListener('keydown', (event) => {
       if (game_paused == false || (game_paused == true && show_debug == true)) {
         user_rotate();
       }
-    } 
+    }  else if (keyid == 13) {  // enter
+      if (game_paused == true) {
+        game_over();
+      }
+    }
   } else {
     if (keyid == 27) {  // esc
       if (replay_active == true) {
         end_replay();
+      } else if (custom_open == true) {
+        close_custom();
+      } else if (game_end == true) {
+        show_start_screen();
       }
-    } else if (keyid == 13) {
-      start_game_button();
+    } else if (keyid == 13) { // enter
+      if (custom_open == false) {
+        start_game_button();
+      }
     }
   }
 
@@ -942,6 +1024,7 @@ window.addEventListener("keypressed", function (event) {
 
 
 fix_contenteditable(".home .replay-data p");
+fix_contenteditable(".custom-css p");
 
 
 function end_replay() {
@@ -949,6 +1032,7 @@ function end_replay() {
     clearTimeout(replay_timeouts[t])
   }
   replay_active = false;
+  setting_choices = copy_json(original_for_replay["settings"]);
   show_start_screen();
 }
 
@@ -971,6 +1055,11 @@ function play_replay() {
     } else if (speed > speed_max) {
       speed = speed_max;
     }
+
+    //settings
+    original_for_replay["settings"] = copy_json(setting_choices);
+    setting_choices = copy_json(replay_gamesave["custom settings"]);
+    document.querySelector(".funny-css4").innerHTML = replay_gamesave["custom settings"]["custom css"]
 
     board_size(replay_gamesave["log"][0]["game"], replay_gamesave["log"][0]["game"]["width"], replay_gamesave["log"][0]["game"]["height"]);
     clear_active_board();
@@ -1080,3 +1169,112 @@ for (i in piece_types) {
   node.setAttribute("onclick", `replace_piece(${JSON.stringify(ptm)})`);
   document.querySelector(".debug-stuff .active-pieces").appendChild(node);
 }
+
+
+
+// customisation screen!!!
+
+function open_custom() {
+  show_page(".game-custom");
+  custom_open = true;
+}
+function close_custom() {
+  hide_page(".game-custom");
+  custom_open = false;
+}
+
+function apply_custom_css() {
+  var custom_css = `${document.querySelector(".custom-css p").innerHTML}`.replaceAll("<br>", "\n");
+  document.querySelector(".funny-css4").innerHTML = custom_css;
+  if (custom_css != "" && custom_css != undefined && custom_css != "undefined") {
+    setting_choices["custom css"] = custom_css;
+  }
+  save_settings();
+}
+
+function apply_settings() {
+  console.log("hi")
+  // colour
+  var css_tmtm = ":root {";
+  for (i in setting_choices["customs"]["colours"]) {
+    css_tmtm += `\n${i}: ${setting_choices["customs"]["colours"][i]};`;
+    document.querySelector(`input[setting="${i}"]`).value = setting_choices["customs"]["colours"][i];
+  }
+  css_tmtm += "\n}";
+  document.querySelector(".funny-css3").innerHTML = css_tmtm;
+
+  // values
+  for (i in customs) {
+    console.log(setting_choices["customs"][customs[i]["id"]])
+    if (setting_choices["customs"][customs[i]["id"]]) {
+      customs[i].onchange(parseFloat(setting_choices["customs"][customs[i]["id"]]));
+    }
+  }
+  apply_custom_css();
+}
+
+function reset_settings() {
+  localStorage.setItem("dapuglol-tetris", "");
+  window.location.reload();
+}
+
+function update_colour_setting(that, setting) {
+  console.log(that, setting);
+  if (!setting_choices["customs"]) {
+    setting_choices["customs"] = {};
+  }
+  if (!setting_choices["customs"]["colours"]) {
+    setting_choices["customs"]["colours"] = {};
+  }
+  setting_choices["customs"]["colours"][setting] = `${that.value}`;
+  save_settings();
+  apply_settings();
+}
+
+// colour settings
+
+var colour_var_list = get_css_vars();
+for (i in colour_var_list) {
+  var node = document.querySelector(".game-custom .colour-list .template .colour").cloneNode(true);
+  node.querySelector("input").value = `${colour_var_list[i]}`;
+  node.querySelector("input").setAttribute("onchange", `update_colour_setting(this, "${i}")`);
+  node.querySelector("input").setAttribute("setting", `${i}`);
+  node.querySelector("p").innerHTML = `${i.replaceAll("--", "")}`;
+
+  document.querySelector(".colour-list").appendChild(node);
+}
+
+function update_value_setting(that, index) {
+  index = parseInt(index);
+  console.log(that, index);
+  if (!setting_choices["customs"]) {
+    setting_choices["customs"] = {};
+  }
+  setting_choices["customs"][customs[index]["id"]] = `${parseFloat(that.value)}`;
+  save_settings();
+  apply_settings();
+}
+
+
+// value settings
+
+for (i in customs) {
+  var node = document.querySelector(".game-custom .value-list .template .value").cloneNode(true);
+  node.querySelector("input").setAttribute("onchange", `update_value_setting(this, "${i}")`);
+  node.querySelector("input").setAttribute("idtm", customs[i]["id"]);
+  node.querySelector("p").innerHTML = `${customs[i]["label"]}`;
+  document.querySelector(".value-list").appendChild(node);
+  customs[i].fillvalue(customs[i]["id"]);
+}
+
+// custom css
+if (setting_choices["custom css"] != "" && setting_choices["custom css"] != undefined && setting_choices["custom css"] != "undefined") {
+  document.querySelector(".custom-css p").innerHTML = setting_choices["custom css"];  
+}
+
+apply_settings();
+
+document.querySelector(".custom-css p").addEventListener("keyup", () => {
+  clearTimeout(timeouts["customcss"])
+  timeouts["customcss"] = setTimeout( apply_custom_css, 1000);
+});

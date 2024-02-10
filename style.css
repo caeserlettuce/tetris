@@ -29,6 +29,8 @@
   --home-txt-2: #dbdbdb;
   --button-bg: #1b70f0;
   --button-bg-hover: #3783f5;
+  --button-red-bg: #be2a2a;
+  --button-red-bg-hover: #cf3333;
   --divider: #3b3b3b;
   --toggle-background: #2b2b2b;
   --toggle-thumb: #ffffff;
@@ -222,7 +224,7 @@ body {
 
 .home {
   width: 100vw;
-  height: auto;
+  height: 100vh;
   min-height: 100vh;
   position: fixed;
   top: 0px;
@@ -231,7 +233,7 @@ body {
   text-align: center;
   transition-duration: 250ms;
   opacity: 1;
-  overflow-y: scroll;
+  overflow-y: scroll !important;
   overflow-y: hidden;
   transition-duration: 250ms;
 }
@@ -262,8 +264,16 @@ body {
   font-size: 1.25em;
 }
 
+.button.red {
+  background-color: var(--button-red-bg);
+}
+
 .button:hover {
   background-color: var(--button-bg-hover);
+}
+
+.button.red:hover {
+  background-color: var(--button-red-bg-hover);
 }
 
 .divider {
@@ -464,4 +474,66 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+
+.game-custom {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background: var(--main-bg);
+  text-align: center;
+  transition-duration: 250ms;
+  overflow-y: scroll;
+}
+
+.game-custom h1 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.colour-list, .value-list {
+  width: 100vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  /*gap: 10px;*/
+}
+
+.colour, .value {
+  border: 1px solid var(--divider);
+  padding: 10px;
+}
+
+.colour p, .value p {
+  margin: 0px;
+  margin-top: 0.5em;
+  font-size: 1.1em;
+}
+
+.custom-css {
+  background-color: var(--replay-data-bg);
+  border: 2px solid var(--replay-data-border);
+  border-radius: 10px;
+  display: inline-block;
+  margin-top: 10px;
+}
+.custom-css p {
+  font-family: ubuntu_mono;
+  margin: 0px;
+  cursor: text;
+  max-width: 20vw;
+  max-height: 20vh;
+  min-width: 1em;
+  min-height: 1em;
+  word-break: break-all;
+  overflow-y: scroll !important;
+  padding: 20px;
+  padding-right: 10px;
 }
