@@ -15,6 +15,8 @@ var board_height = 20;
 var side_size = 5;
 var next_height = 4;
 var next_amount = 4;
+var start_speed = 500;
+var speed_increase = 1.125;
 var game_paused = false;
 var game_status = false;
 var just_held = false;
@@ -263,23 +265,44 @@ function check_lines() {
     }
     console.log(lines);
     console.log(lines_clear);
-  
+
+    var lines_clear_shift = {};
+    lines_clear.sort();
+    lines_clear.reverse();
+
+    for (i in lines_clear) {
+      lines_clear_shift[lines_clear[i]] = parseInt(i) + 1;
+    }
+    console.log("shifts:", lines_clear_shift);
+
     var new_static = [];
     var lines_cleared = lines_clear.length;
   
     for (i in gamesave["static"]) {
       var y = gamesave["static"][i]["loc"][1];
       if (lines_clear.includes(y)) {
-        console.log(y);
+        //console.log(y);
         gamesave["score"] += 1;
+
+        if (gamesave["score"] % 100 == 0 && ( gamesave["score"] >= 100 && gamesave["score"] <= 1000 ) ) {
+          start_speed = start_speed / speed_increase;
+          game_speed(start_speed);
+        }
   
         // do NOT add it because it is being removed
   
       } else {
         var new_piece_entry = copy_json(gamesave["static"][i]);
-        if (y < lines_clear[0]) {
-          new_piece_entry["loc"][1] += lines_cleared;
+        var shift = 0;
+        for (e in lines_clear_shift) {
+          if (y < e) {
+            if (lines_clear_shift[e] > shift) {
+              shift = lines_clear_shift[e];
+            }
+          }
         }
+        console.log("line:", y, "shift:", shift);
+        new_piece_entry["loc"][1] += shift;
         new_static.push(new_piece_entry);
       }
     }
@@ -292,6 +315,11 @@ function display_game(game) {
   // for (i in game["pieces"]) {
   //   display_shape(game["pieces"][i]);
   // }
+  if (show_debug == true) {
+    game["debug"] = true;
+  } else {
+    game["debug"] = false;
+  }
   if (game_paused == false) {
     check_lines();
   }
@@ -358,12 +386,18 @@ function display_game(game) {
 
 
   }
-  document.querySelector(".board-wrapper .side-text.score").innerHTML = `score: ${game["score"]}`;
+
+  if (game["debug"] == true) {
+    document.querySelector(".board-wrapper .side-text.score").innerHTML = `score: ${game["score"]} [debug]`;
+  } else {
+    document.querySelector(".board-wrapper .side-text.score").innerHTML = `score: ${game["score"]}`;
+  }
+  
 
 
 
 
-  if (show_debug == true) {
+  if (show_debug == true && replay_active == false) {
     display_ghost_debug(active_bounds, true);
     display_ghost_debug(static_bounds, false);
   }
@@ -479,6 +513,7 @@ function check_bounds(piece) {
 
   for (i in active_bounds) {
     var loc_tm = active_bounds[i];
+    //console.log(loc_tm);
 
     if (inlist(loc_tm, static_bounds) == true) {
       final = false
@@ -588,7 +623,7 @@ function start_game() {
   board_size(gamesave, board_width, board_height);
   new_piece(true);
   game_status = true;
-  game_speed(500);
+  game_speed(start_speed);
   
   clear_active_board();
   display_game(gamesave);
@@ -679,7 +714,7 @@ function user_move(direction) {
     gamesave["active piece"] = {...move_new};
     clear_active_board();
     display_game(gamesave);
-  } else if (bounds_move_check == false && direction[0] == 0) {
+  } else if (bounds_move_check == false && direction[0] == 0 && direction[1] >= 0 && game_paused == false) {
     new_piece();
   }
 }
@@ -802,9 +837,6 @@ document.addEventListener('keydown', (event) => {
 
   if (game_status == true) {
     if (keyid == 27) {        // esc
-      if (show_debug == true) {
-        document.querySelector(".pausemenu").style.backgroundColor = "transparent";
-      }
       clearTimeout(timeouts["gp"]);
       if (game_paused == false) {
         document.querySelector(".pausemenu").style.display = "";
@@ -818,6 +850,8 @@ document.addEventListener('keydown', (event) => {
         timeouts["gp"] = setTimeout( () => {
           document.querySelector(".pausemenu").style.display = "none";
         }, 260);
+        clear_active_board();
+        display_game(gamesave);
         game_paused = false;
       }
     } else if (keyid == 38) { // up
@@ -836,12 +870,18 @@ document.addEventListener('keydown', (event) => {
           display_game(gamesave);
         }
       }
-    }
+    } else if (keyid == 82) { // r for rotate
+      if (game_paused == false || (game_paused == true && show_debug == true)) {
+        user_rotate();
+      }
+    } 
   } else {
     if (keyid == 27) {  // esc
       if (replay_active == true) {
         end_replay();
       }
+    } else if (keyid == 13) {
+      start_game_button();
     }
   }
 
@@ -881,13 +921,16 @@ window.addEventListener("keypressed", function (event) {
   case 37:        // left
     var key = 37;
     //console.log(key_delays[`${key}`]);
-    do_thingy(37, () => {if (game_paused == false && game_status == true) { user_move([-1,0]) }} );
+    do_thingy(37, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([-1,0]) }} );
     break;
   case 39:        // right
-    do_thingy(39, () => {if (game_paused == false && game_status == true) { user_move([1,0]) }} );
+    do_thingy(39, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([1,0]) }} );
     break;
   case 40:        // down
-    do_thingy(40, () => {if (game_paused == false && game_status == true) { user_move([0,1]) }} );
+    do_thingy(40, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([0,1]) }} );
+    break;
+  case 38:
+    do_thingy(40, () => {if (game_paused == true && show_debug == true && game_status == true) { user_move([0,-1]) }} );
     break;
   }
   //console.log(event.keyCode);
@@ -962,6 +1005,78 @@ function play_replay() {
       hide_page(".replay-error");
     }, 3000);
   }
+}
 
 
+// debug mode active pieces thingy lmao
+
+// {"type": `${the_piece}`, "rot": 0, "loc": [0,0]}
+
+function replace_piece(data) {
+  data["loc"] = [...gamesave["active piece"]["loc"]];
+
+  var new_data = copy_json(data)
+  
+  var max_bounds = get_piece_max_bounds(data);
+  var points = get_piece_points(new_data);
+  var in_left = false;
+  var in_right = false;
+  
+  for (i in points) {                   // check if at the wall or not
+    if (points[i][0] < max_bounds[0]) {
+      // up against left wall
+      in_left = true;
+      console.log("left wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    } else if (points[i][0] > (board_width - 1) - max_bounds[0]) {
+      // up against right wall
+      in_right = true
+      console.log("right wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    }
+  }
+
+  if (in_left == true) {
+    data["loc"][0] = 0;
+    var bounds_rotate_check_2 = check_bounds(data);
+    if (bounds_rotate_check_2 == true) {
+      new_data = copy_json(data);
+      //clear_active_board();
+      //display_game(gamesave);
+    }
+  } else if (in_right == true) {
+    console.log("before", data["loc"][0]);
+    data["loc"][0] = (board_width - 1) - max_bounds[0];  // as much tm
+    console.log("after", data["loc"][0]);
+    var bounds_rotate_check_2 = check_bounds(data);
+    if (bounds_rotate_check_2 == true) {
+      new_data = copy_json(data);
+      //clear_active_board();
+      //display_game(gamesave);
+    }
+  }
+
+
+  
+  gamesave["active piece"] = copy_json(new_data);
+  clear_active_board();
+  display_game(gamesave);
+}
+
+for (i in piece_types) {
+  var ptm = {"type": `${piece_types[i]}`, "rot": 0, "loc": [0, 0]};
+  var pb = get_piece_max_bounds(ptm);
+  var pp = get_piece_points(ptm);
+  var node = document.querySelector(".debug-stuff .active-pieces .template svg").cloneNode(true);
+  var wid = pb[0] + 1;
+  var hei = pb[1] + 1;
+  node.setAttribute("viewBox", `0 0 ${wid} ${hei}`);
+  node.style.maxWidth = `${wid * 3}em`;
+  node.style.maxHeight = `${hei * 3}em`;
+  for (b in pp) {
+    var node1 = document.querySelector(".template .block").cloneNode(true);
+    node1.classList.add(ptm["type"]);
+    node1.style = `transform: translate(${pp[b][0]}px, ${pp[b][1]}px);`;
+    node.appendChild(node1);
+  }
+  node.setAttribute("onclick", `replace_piece(${JSON.stringify(ptm)})`);
+  document.querySelector(".debug-stuff .active-pieces").appendChild(node);
 }

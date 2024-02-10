@@ -34,6 +34,7 @@
   --toggle-thumb: #ffffff;
   --toggle-background-enabled: #3783f5;
   --pause-bg: #1b1b1b;
+  --pause-bg-debug: #1b1b1b36;
   --board-scale: calc(90vh / 20);
   --replay-data-bg: #2e2e2e;
   --replay-data-border: #383838;
@@ -231,6 +232,7 @@ body {
   transition-duration: 250ms;
   opacity: 1;
   overflow-y: scroll;
+  overflow-y: hidden;
   transition-duration: 250ms;
 }
 .home h1 {
@@ -312,6 +314,7 @@ body {
   width: 100vw;
   height: 100vh;
   position: fixed;
+  overflow-y: scroll;
   top: 0px;
   left: 0px;
   display: flex;
@@ -320,6 +323,57 @@ body {
   flex-direction: column;
   background-color: var(--pause-bg);
   transition-duration: 250ms;
+}
+
+.debugmode .pausemenu {
+  background-color: var(--pause-bg-debug);
+}
+
+.debug-stuff {
+  display: none;
+  text-align: center;
+}
+
+
+.debugmode .debug-stuff {
+  display: unset !important;
+}
+
+.debug-stuff h1 {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.debug-stuff .active-pieces {
+  display: flex;
+  gap: 20px;
+  width: 30vw;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  align-content: flex-start;
+}
+
+.debug-stuff .active-pieces svg {
+  width: auto;
+  height: auto;
+  cursor: pointer;
+  transition-duration: 250ms;
+}
+
+.debug-stuff .active-pieces svg:hover {
+  transform: scale(1.1);
+}
+
+.debug-stuff .active-pieces svg > * {
+  pointer-events: none;
+}
+
+.secondary {
+  color: var(--home-txt-2);
 }
 
 .side-text {
