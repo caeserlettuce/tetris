@@ -16,7 +16,7 @@ var side_size = 5;
 var next_height = 4;
 var next_amount = 4;
 var start_speed = 500;
-var speed_increase = 1.125;
+var speed_increase = 1.025;
 var game_paused = false;
 var game_status = false;
 var game_end = false;
@@ -103,10 +103,12 @@ function get_css_vars() {
     []
   );
 
+  console.log(arr_tm)
+
   for (i in arr_tm) {
     var val = getComputedStyle(document.documentElement).getPropertyValue(arr_tm[i]);
-    if (val.split("")[0] == "#") {
-      out[arr_tm[i]] = val;
+    if (val.includes("#")) {
+      out[arr_tm[i]] = val.replace(" ", "");
     }
     
   }
@@ -592,15 +594,38 @@ function check_bounds(piece) {
   return final
 }
 
-function new_piece(first) {
+function new_piece(first, second) {
   if (first != true) {
     add_static(gamesave["active piece"]);
     just_held = false;
   }
-  var the_piece = rand(piece_types);
-  gamesave["next pieces"].push({"type": `${the_piece}`, "rot": 0, "loc": [0,0]})
+  var the_piece;
+  var piece_good = false;
+  while (piece_good == false) {
+    the_piece = rand(piece_types);
+    console.log("checking piece...");
+    if (gamesave["next pieces"].length >= 1) {
+      if (the_piece == gamesave["next pieces"][gamesave["next pieces"].length - 1]["type"]) {
+        console.log("retrying piece...");
+      } else {
+        console.log("piece good");
+        piece_good = true;
+      }
+    } else {
+      console.log("piece good");
+      piece_good = true;
+    }
+    
+  }
+  console.log(the_piece);
+  console.log({"type": `${the_piece}`, "rot": 0, "loc": [0,0]});
+  
+  gamesave["next pieces"].push({"type": `${the_piece}`, "rot": 0, "loc": [0,0]});
+  console.log(gamesave["next pieces"])
   gamesave["active piece"] = copy_json(gamesave["next pieces"][0]);
-  gamesave["next pieces"].splice(0, 1);
+  if (second != true) {
+    gamesave["next pieces"].splice(0, 1);
+  }
   var piece_bounds = get_piece_max_bounds(gamesave["active piece"]);
   gamesave["active piece"]["loc"][0] = Math.floor(board_width / 2) - (Math.floor(piece_bounds[0] / 2) + 1 ); // put it at the center
 }
@@ -679,13 +704,12 @@ function start_game() {
     "log": []
   }
   for (let i = 0; i < next_amount; i++) {
-    var the_piece = rand(piece_types);
-    gamesave["next pieces"].push({"type": `${the_piece}`, "rot": 0, "loc": [0,0]});
+    new_piece(true, true);
   }
 
   //add_static({"type": "lblue", "loc": [0,19], "rot": 0 })
   board_size(gamesave, board_width, board_height);
-  new_piece(true);
+  //new_piece(true);
   game_status = true;
   game_speed(start_speed);
   
@@ -776,6 +800,14 @@ for (i in localstorage) {
 }
 if (!setting_choices["highscore"]) {
   setting_choices["highscore"] = 0;
+}
+
+if (!setting_choices["customs"]) {
+  setting_choices["customs"] = {};
+}
+
+if (!setting_choices["customs"]["colours"]) {
+  setting_choices["customs"]["colours"] = {};
 }
 
 function user_move(direction) {
@@ -1201,7 +1233,10 @@ function apply_settings() {
     document.querySelector(`input[setting="${i}"]`).value = setting_choices["customs"]["colours"][i];
   }
   css_tmtm += "\n}";
-  document.querySelector(".funny-css3").innerHTML = css_tmtm;
+  if (setting_choices["customs"]["colours"] >= 1) {
+    document.querySelector(".funny-css3").innerHTML = css_tmtm;
+  }
+  
 
   // values
   for (i in customs) {
