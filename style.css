@@ -24,6 +24,7 @@
   --disabled-dark: #464646;
   --debug-light: #ffffff;
   --debug-dark: #938bff;
+  --debug-check: #ff0000;
   --background-light: #3a3a3a;
   --background-dark: #2c2c2c;
   --home-txt-2: #dbdbdb;
@@ -181,6 +182,9 @@ body {
 }
 .debug .dark {
   fill: var(--debug-dark);
+}
+.debug .check {
+  fill: var(--debug-check);
 }
 .disabled .light {
   fill: var(--disabled-light);

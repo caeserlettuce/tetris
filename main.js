@@ -30,7 +30,8 @@ var key_delays = {};
 var active_new;
 var gamesave = {}; // find the default settings in the start_game() function
 var game_replay = {}; // same with this one
-
+var undo_history = [];
+var reset_undo_history = true;
 var replay_gamesave = {}; // for replaying
 var replay_timeouts = [];
 var replay_active = false;
@@ -290,6 +291,15 @@ function display_ghost_debug(points, light) {
   }
 }
 
+function clear_check_debug() {
+  var heehee = active_board.querySelectorAll(".debug.check");
+  for (h in heehee) {
+    if (is_element(heehee[h])) {
+      heehee[h].remove();
+    }
+  }
+}
+
 function display_ghost_block(data) {
   if (show_ghost == true) {
     var data_new = copy_json(data);
@@ -485,6 +495,10 @@ function display_game(game) {
         "game": copy_json(game)
       });
     }
+    if (reset_undo_history == true) {
+      console.log("ya");
+      undo_history = [...game_replay["log"]];
+    }
   }
   // DONT PUT ANYTHING ELSE BELOW HERE!!!!!  
 
@@ -559,6 +573,7 @@ function add_static(data) { // add piece to static points
 
 
 function check_bounds(piece) {
+  clear_check_debug();
   var final = true;
   var vertical_final = true;
   static_bounds = [];
@@ -574,6 +589,20 @@ function check_bounds(piece) {
     static_bounds.push( [...gamesave["static"][i]["loc"]] );
   }
 
+  if (show_debug == true) {
+    for (g in piece_points) {
+      var node = document.querySelector(".template .debug").cloneNode(true);
+      node.style = `transform: translate(${piece_points[g][0]}px, ${piece_points[g][1]}px)`
+      for (i in node.querySelectorAll("rect")) {
+        var shape = node.querySelectorAll("rect")[i]
+        if (is_element(shape)) {
+          //console.log(shape)
+          shape.classList.add("check");
+        }
+      }
+      active_board.appendChild(node);
+    }
+  }
 
   for (i in active_bounds) {
     var loc_tm = active_bounds[i];
@@ -824,51 +853,107 @@ function user_move(direction) {
 }
 
 function user_rotate() {
-  // when the user wants to rotate
-  var rotate_new = piece_rotate(gamesave["active piece"]);
+  var rotate_new = piece_rotate(copy_json(gamesave["active piece"]));
   var bounds_rotate_check = check_bounds(rotate_new);
-  if (bounds_rotate_check == true) {
-    gamesave["active piece"] = {...rotate_new};
-    clear_active_board();
-    display_game(gamesave);
-  } else if (bounds_rotate_check == false) {  // if the shape is right up against the edge, figure out how to rotate it so its good
-    var max_bounds = get_piece_max_bounds(rotate_new);
-    var points = get_piece_points(gamesave["active piece"]);
-    var in_left = false;
-    var in_right = false;
-    
-    for (i in points) {                   // check if at the wall or not
-      if (points[i][0] < max_bounds[0]) {
-        // up against left wall
-        in_left = true;
-        console.log("left wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      } else if (points[i][0] > (board_width - 1) - max_bounds[0]) {
-        // up against right wall
-        in_right = true
-        console.log("right wall!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      }
-    }
 
-    if (in_left == true) {
-      rotate_new["loc"][0] = 0;
-      var bounds_rotate_check_2 = check_bounds(rotate_new);
-      if (bounds_rotate_check_2 == true) {
-        gamesave["active piece"] = copy_json(rotate_new);
-        clear_active_board();
-        display_game(gamesave);
-      }
-    } else if (in_right == true) {
-      console.log("before", rotate_new["loc"][0]);
-      rotate_new["loc"][0] = (board_width - 1) - max_bounds[0];  // as much tm
-      console.log("after", rotate_new["loc"][0]);
-      var bounds_rotate_check_2 = check_bounds(rotate_new);
-      if (bounds_rotate_check_2 == true) {
-        gamesave["active piece"] = copy_json(rotate_new);
-        clear_active_board();
-        display_game(gamesave);
+  var max_bounds = get_piece_max_bounds(rotate_new);
+  var points = get_piece_points(gamesave["active piece"]);
+
+  var piece_loc_checks = [];
+  var piece_max = get_piece_max_bounds(gamesave["active piece"]);
+
+  for (let b = 0; b < piece_max[0] + 1; b++) {
+    // the bounds
+    piece_loc_checks.push([gamesave["active piece"]["loc"][0] + b, gamesave["active piece"]["loc"][1]]);
+  }
+
+  console.log(piece_loc_checks);
+
+  var checked_good = false;
+  var checked_good_coords;
+
+  // rotate check blast #1
+
+  for (j in piece_loc_checks) {
+    if (checked_good == false) {
+      var check_piece = copy_json(rotate_new);
+      check_piece["loc"][0] = piece_loc_checks[j][0];
+      check_piece["loc"][1] = piece_loc_checks[j][1];
+      var check_tm = check_bounds(check_piece);
+      if (check_tm == true) {
+        checked_good_coords = piece_loc_checks[j];
+        console.log("yay!!", checked_good_coords);
+        checked_good = true;
       }
     }
   }
+
+// rotate check blast #2
+  
+  if (checked_good == false) {
+    
+    piece_loc_checks = [];
+    piece_max = get_piece_max_bounds(rotate_new);
+
+    for (let b = 0; b < piece_max[0] + 1; b++) {
+      // the bounds
+      piece_loc_checks.push([rotate_new["loc"][0] - b, rotate_new["loc"][1]]);
+    }
+
+    console.log(piece_loc_checks);
+
+    for (j in piece_loc_checks) {
+      if (checked_good == false) {
+        var check_piece = copy_json(rotate_new);
+        check_piece["loc"][0] = piece_loc_checks[j][0];
+        check_piece["loc"][1] = piece_loc_checks[j][1];
+        var check_tm = check_bounds(check_piece);
+        if (check_tm == true) {
+          checked_good_coords = piece_loc_checks[j];
+          console.log("yay!!", checked_good_coords);
+          checked_good = true;
+        }
+      }
+    }
+
+  }
+
+  // rotate check blast #3
+
+  if (checked_good == false) {
+    piece_loc_checks = [];
+    piece_max = get_piece_max_bounds(rotate_new);
+
+    for (let b = 0; b < piece_max[1] + 1; b++) {
+      // the bounds
+      piece_loc_checks.push([rotate_new["loc"][0], rotate_new["loc"][1] - b]);
+    }
+
+    console.log(piece_loc_checks);
+
+    for (j in piece_loc_checks) {
+      if (checked_good == false) {
+        var check_piece = copy_json(rotate_new);
+        check_piece["loc"][0] = piece_loc_checks[j][0];
+        check_piece["loc"][1] = piece_loc_checks[j][1];
+        var check_tm = check_bounds(check_piece);
+        if (check_tm == true) {
+          checked_good_coords = piece_loc_checks[j];
+          console.log("yay!!", checked_good_coords);
+          checked_good = true;
+        }
+      }
+    }
+  }
+
+  if (checked_good == true) {
+    rotate_new["loc"] = [...checked_good_coords];
+    gamesave["active piece"] = copy_json(rotate_new);
+    clear_active_board();
+    display_game(gamesave);
+  }
+
+
 }
 
 function find_slam_height(data) {
@@ -897,9 +982,6 @@ function find_slam_height(data) {
   return height_out
 }
 
-/*
-
-  */
 
 function user_slam() {
   var slam_height = find_slam_height(gamesave["active piece"]);
