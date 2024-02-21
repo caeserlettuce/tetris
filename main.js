@@ -839,11 +839,14 @@ if (!setting_choices["customs"]["colours"]) {
   setting_choices["customs"]["colours"] = {};
 }
 
-function user_move(direction) {
+function user_move(direction, add_points) {
   // when the user moves the piece
   var move_new = piece_move(gamesave["active piece"], direction);
   var bounds_move_check = check_bounds(move_new);
   if (bounds_move_check == true) {
+    if (direction[1] > 0) {
+      gamesave["score"] += direction[1];
+    }
     gamesave["active piece"] = {...move_new};
     clear_active_board();
     display_game(gamesave);
@@ -988,6 +991,7 @@ function user_slam() {
   console.log(slam_height)
   var slam_new = copy_json(gamesave["active piece"]);
   slam_new["loc"][1] = slam_height;
+  gamesave["score"] += slam_new["loc"][1] - gamesave["active piece"]["loc"][1];
   gamesave["active piece"] = copy_json(slam_new);
   new_piece();
   clear_active_board();
@@ -1123,7 +1127,7 @@ window.addEventListener("keypressed", function (event) {
     do_thingy(39, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([1,0]) }} );
     break;
   case 40:        // down
-    do_thingy(40, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([0,1]) }} );
+    do_thingy(40, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([0,1], true) }} );
     break;
   case 38:
     do_thingy(40, () => {if (game_paused == true && show_debug == true && game_status == true) { user_move([0,-1]) }} );
