@@ -41,6 +41,9 @@
   --board-scale: calc(90vh / 20);
   --replay-data-bg: #2e2e2e;
   --replay-data-border: #383838;
+  --file-upload-bg: #242424;
+  --file-upload-border: #2b2b2b;
+  --file-upload-button-bg: #2b2b2b;
   --error-txt: #ff6d6d;
 }
 
@@ -445,9 +448,15 @@ body {
 .gameover .replay-data p {
   padding: 0px;
 }
+.gameover .replay-stuff h2 {
+  margin-top: 1.5em;
+}
+.gameover .replay-stuff h2.button {
+  margin-top: 1em;
+}
 .gameover .replay-stuff h3 {
   margin-top: 1em;
-  margin-bottom: 3em;
+  margin-bottom: 2em;
 }
 
 .home .replay-stuff h3 {
@@ -478,6 +487,20 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+input[type="file"] {
+  width: fit-content;
+  background-color: var(--file-upload-bg);
+  border: 1px solid var(--replay-data-border);
+  color: var(--home-txt-2);
+  font-size: 1em;
+}
+input[type="file"]::-webkit-file-upload-button {
+  background-color: var(--file-upload-button-bg);
+  color: var(--main-txt);
+  border: 1px solid var(--replay-data-bg);
+  margin: 5px;
 }
 
 

@@ -667,9 +667,10 @@ function game_over() {
   game_end = true;
 
   if (show_replay == true) {
-    var encoded_replay = btoa(JSON.stringify(game_replay));
-    document.querySelector(".gameover .replay-data p").innerHTML = encoded_replay;
-    document.querySelector(".home .replay-data p").innerHTML = encoded_replay;
+    
+
+    //document.querySelector(".gameover .replay-data p").innerHTML = encoded_replay;
+    // document.querySelector(".home .replay-data p").innerHTML = encoded_replay;
   }
   document.querySelector(".scoretm .score").innerHTML = gamesave["score"];
 
@@ -682,7 +683,8 @@ function game_speed(speed) {
     if (game_paused == false) {
       try {
         active_new = piece_move(gamesave["active piece"], [0,1]);
-  
+        var dont_update_display = false;
+
         var bounds_check = check_bounds(active_new);
         //console.log(bounds_good, vertical_good);
         console.log(bounds_check);
@@ -693,13 +695,20 @@ function game_speed(speed) {
         } else if (bounds_check == false) {  // stop_piece
           if (gamesave["active piece"]["loc"][1] == 0) {
             game_over();
+            dont_update_display = true;
           } else {
             new_piece();
+            var bounds_check = check_bounds(gamesave["active piece"]);
+            if (bounds_check == false) {
+              game_over();
+              dont_update_display = true;
+            }
           }
         }
-  
-        clear_active_board();
-        display_game(gamesave);
+        if (dont_update_display == false) {
+          clear_active_board();
+          display_game(gamesave);  
+        }
         
         
       } catch (err) {
@@ -717,6 +726,9 @@ function start_game() {
 
   var date_now = new Date();
   game_paused = false;
+  if (typeof setting_choices["customs"]["stsp"] == typeof 1) {
+    start_speed = setting_choices["customs"]["stsp"];
+  }
   gamesave = {
     "static": [],
     "active piece": {},
@@ -1045,14 +1057,14 @@ document.addEventListener('keydown', (event) => {
         game_paused = false;
       }
     } else if (keyid == 38) { // up
-      if (game_paused == false) {
+      if (game_paused == false && replay_active != true) {
         user_rotate();
       }
     } else if (keyid == 32) { // space
-      if (game_paused == false) {
+      if (game_paused == false && replay_active != true) {
         user_slam();
       }
-    } else if (keyid == 67) { // c
+    } else if (keyid == 67 && replay_active != true) { // c
       if (game_paused == false) {
         if (show_hold == true) {
           user_hold();
@@ -1060,7 +1072,7 @@ document.addEventListener('keydown', (event) => {
           display_game(gamesave);
         }
       }
-    } else if (keyid == 82) { // r for rotate
+    } else if (keyid == 82 && replay_active != true) { // r for rotate
       if (game_paused == false || (game_paused == true && show_debug == true)) {
         user_rotate();
       }
@@ -1121,13 +1133,13 @@ window.addEventListener("keypressed", function (event) {
   case 37:        // left
     var key = 37;
     //console.log(key_delays[`${key}`]);
-    do_thingy(37, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([-1,0]) }} );
+    do_thingy(37, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true && replay_active != true) ) { user_move([-1,0]) }} );
     break;
   case 39:        // right
-    do_thingy(39, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([1,0]) }} );
+    do_thingy(39, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true && replay_active != true) ) { user_move([1,0]) }} );
     break;
   case 40:        // down
-    do_thingy(40, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true) ) { user_move([0,1], true) }} );
+    do_thingy(40, () => {if ( (game_paused == false && game_status == true) || (game_paused == true && show_debug == true && game_status == true && replay_active != true) ) { user_move([0,1], true) }} );
     break;
   case 38:
     do_thingy(40, () => {if (game_paused == true && show_debug == true && game_status == true) { user_move([0,-1]) }} );
@@ -1141,7 +1153,7 @@ window.addEventListener("keypressed", function (event) {
 // REPLAY STUFF
 
 
-fix_contenteditable(".home .replay-data p");
+//fix_contenteditable(".home .replay-data p");
 fix_contenteditable(".custom-css p");
 
 
@@ -1157,61 +1169,78 @@ function end_replay() {
 function play_replay() {
 
   // PLAY THE REPLAY
+  if (document.querySelector("#replayfile-input").value != "") {
+    try {
+      // var raw_data = document.querySelector(".replay-data p").innerHTML;
+      var fileToLoad = document.querySelector("#replayfile-input").files[0];
+      var fileReader = new FileReader();
+      fileReader.onload = function(fileLoadedEvent){
+        var raw_data = fileLoadedEvent.target.result;
 
-  try {
-    var raw_data = document.querySelector(".replay-data p").innerHTML;
-    replay_gamesave = JSON.parse(atob(raw_data));
-    var start_time = Date.parse(replay_gamesave["start"]);
-    replay_active = true;
-    var last_timetm = 0;
+        console.log(raw_data)
 
-    var speed = parseFloat(document.querySelector(".replay-speed").value);
-    var speed_min = parseFloat(document.querySelector(".replay-speed").getAttribute("min"));
-    var speed_max = parseFloat(document.querySelector(".replay-speed").getAttribute("max"));
-    if (speed < speed_min) {
-      speed = speed_min;
-    } else if (speed > speed_max) {
-      speed = speed_max;
-    }
-
-    //settings
-    original_for_replay["settings"] = copy_json(setting_choices);
-    setting_choices = copy_json(replay_gamesave["custom settings"]);
-    document.querySelector(".funny-css4").innerHTML = replay_gamesave["custom settings"]["custom css"]
-
-    board_size(replay_gamesave["log"][0]["game"], replay_gamesave["log"][0]["game"]["width"], replay_gamesave["log"][0]["game"]["height"]);
-    clear_active_board();
-
-    hide_page(".home");
-
-    setTimeout( () => {
-      for (y in replay_gamesave["log"]) {
-        var time = (Date.parse(replay_gamesave["log"][y]["time"]) - start_time );
-        //console.log(time);
-        replay_timeouts.push(
-          setTimeout( (index) => {
-            //console.log("hi");
-            var the_game = copy_json(replay_gamesave["log"][parseInt(index)]["game"]);
-            console.log(parseInt(index));
-            clear_active_board();
-            display_game(the_game);
-          }, time / speed, `${y}`)
-        );
-        last_timetm = time / speed;
-      }
-      replay_timeouts.push(setTimeout(end_replay, last_timetm + 1000));
-  
-    }, 1000);
-
+        replay_gamesave = JSON.parse(atob(raw_data));
+        var start_time = Date.parse(replay_gamesave["start"]);
+        replay_active = true;
+        var last_timetm = 0;
     
-
-  } catch (err) {
-    console.error(err)
+        var speed = parseFloat(document.querySelector(".replay-speed").value);
+        var speed_min = parseFloat(document.querySelector(".replay-speed").getAttribute("min"));
+        var speed_max = parseFloat(document.querySelector(".replay-speed").getAttribute("max"));
+        if (speed < speed_min) {
+          speed = speed_min;
+        } else if (speed > speed_max) {
+          speed = speed_max;
+        }
+    
+        //settings
+        original_for_replay["settings"] = copy_json(setting_choices);
+        setting_choices = copy_json(replay_gamesave["custom settings"]);
+        document.querySelector(".funny-css4").innerHTML = replay_gamesave["custom settings"]["custom css"]
+    
+        board_size(replay_gamesave["log"][0]["game"], replay_gamesave["log"][0]["game"]["width"], replay_gamesave["log"][0]["game"]["height"]);
+        clear_active_board();
+    
+        hide_page(".home");
+    
+        setTimeout( () => {
+          for (y in replay_gamesave["log"]) {
+            var time = (Date.parse(replay_gamesave["log"][y]["time"]) - start_time );
+            //console.log(time);
+            replay_timeouts.push(
+              setTimeout( (index) => {
+                //console.log("hi");
+                var the_game = copy_json(replay_gamesave["log"][parseInt(index)]["game"]);
+                console.log(parseInt(index));
+                clear_active_board();
+                display_game(the_game);
+              }, time / speed, `${y}`)
+            );
+            last_timetm = time / speed;
+          }
+          replay_timeouts.push(setTimeout(end_replay, last_timetm + 1000));
+      
+        }, 1000);
+      };
+      fileReader.readAsText(fileToLoad, "UTF-8");
+      
+  
+      
+  
+    } catch (err) {
+      console.error(err)
+      show_page(".replay-error");
+      setTimeout( () => {
+        hide_page(".replay-error");
+      }, 3000);
+    }
+  } else {
     show_page(".replay-error");
     setTimeout( () => {
       hide_page(".replay-error");
     }, 3000);
   }
+  
 }
 
 
@@ -1399,3 +1428,17 @@ document.querySelector(".custom-css p").addEventListener("keyup", () => {
   clearTimeout(timeouts["customcss"])
   timeouts["customcss"] = setTimeout( apply_custom_css, 1000);
 });
+
+
+// download game replay file
+
+function download_game_replay() {
+  console.log("downloading file...")
+  var encoded_replay = btoa(JSON.stringify(game_replay));
+  var link = document.createElement("a");
+  var file = new Blob([encoded_replay], { type: 'text/plain' });
+  link.href = URL.createObjectURL(file);
+  link.download = `tetris_replay_${game_replay["name"]}.txt`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}

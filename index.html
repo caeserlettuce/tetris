@@ -90,12 +90,18 @@
       <div class="replay-stuff">
         <div class="divider"></div>
         <h1>replay games</h1>
-        <h3>paste the game data below<br>(data of your previous game may automatically be in here)</h3>
+        <!-- <h3>paste the game data below<br>(data of your previous game may automatically be in here)</h3>
 
         <div class="replay-data">
           <p contenteditable></p>
-        </div>
-<br><br>
+        </div> -->
+
+        <h3>upload your replay file here and hit play replay</h3>
+        <br>
+        <input type="file" id="replayfile-input" accept=".txt">
+<br>
+        <h3>replay speed:</h3>
+        <br>
         <input class="replay-speed" type="number" min="0.25" max="100" value="1">
 
         <p class="button" onclick="play_replay()">play replay</p>
@@ -139,11 +145,17 @@
       <h2 class="scoretm">your score was: <span class="score"></span></h2>
       <div class="divider"></div>
       <div class="replay-section replay-stuff">
-        <h2>game replay data:</h2>
+        <h2>game replay:</h2>
+<!--         
         <div class="replay-data">
           <p>hi guys </p>
         </div>
-        <h3>you can copy this data and then paste it in the replay player thingy on the home page</h3>
+        <h3>you can copy this data and then paste it in the replay player thingy on the home page</h3> -->
+
+        <h2 class="button" onclick="download_game_replay()">download replay save</h2>
+        <h3 class="secondary">you can upload this file on the home page and replay this game</h3>
+
+
       </div>
       <div class="divider"></div>
       <h1>ok</h1>
