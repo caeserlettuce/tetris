@@ -1018,7 +1018,44 @@ function user_hold() {
     if (gamesave["hold"] != false) {
       // take piece out and make it active piece
       gamesave["active piece"] = copy_json(gamesave["hold"]);
-      gamesave["active piece"]["loc"] = active_piece["loc"];
+      var loc_good = false;
+      var loc_check = active_piece["loc"];
+      var shape_bounds = get_piece_max_bounds(gamesave["hold"]);
+      var x_ch = 0;
+      var y_ch = 0;
+      var possible_ch = [];
+      console.debug(shape_bounds)
+      for (let x_ch = 0; x_ch < (shape_bounds[0] + 1 ) * 2; x_ch++) {
+        for (let y_ch = 0; y_ch < (shape_bounds[1] + 1) * 2; y_ch++) {
+          var hold_check = copy_json(gamesave["hold"]);
+          //console.debug(active_piece["loc"])
+          hold_check["loc"][0] = active_piece["loc"][0] + x_ch - (shape_bounds[0] + 1 );
+          hold_check["loc"][1] = active_piece["loc"][1] + y_ch - (shape_bounds[1] + 1 );
+          if (check_bounds(hold_check) == true) {
+            loc_good = true;
+            possible_ch.push([...hold_check["loc"]]);
+          }
+        }
+      }
+      console.debug(possible_ch);
+      var final_ch = [0, 0];
+      var shortest_distance = 1000000000000000000000000000000000000000000000;
+      if (loc_good == true) {
+        for (h in possible_ch) {
+          var distance_x = possible_ch[h][0] - active_piece["loc"][0];
+          var distance_y = possible_ch[h][1] - active_piece["loc"][1];
+          var distance = Math.sqrt( (distance_x ** 2) + (distance_y ** 2) );
+          if (distance < shortest_distance) {
+            shortest_distance = distance;
+            final_ch = [...possible_ch[h]]
+          }
+        }
+        console.debug(final_ch);
+        gamesave["active piece"]["loc"] = [...final_ch]
+
+      } else {
+        console.log("can't swap hold because theres like no room whatsoever")
+      }
     } else {
       // new random piece
       new_piece(true);
