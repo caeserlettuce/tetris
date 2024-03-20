@@ -45,6 +45,9 @@
   --file-upload-border: #2b2b2b;
   --file-upload-button-bg: #2b2b2b;
   --error-txt: #ff6d6d;
+  --control-txt: #878787;
+  --control-txt2: #9d9d9d;
+  --control-key-active: #2a2a2a;
 }
 
 /* funny colour */
@@ -415,9 +418,20 @@ body {
 }
 
 .gameover h2.scoretm {
-  margin-top: 2em;
-  margin-bottom: 3em;
+  margin-top: 2em !important;
+  margin-bottom: 0em !important;
   color: var(--home-txt-2);
+}
+
+h2.highscoretm {
+  margin-top: 1em !important;
+  margin-bottom: 3em !important;
+  font-size: 1.175em;
+  color: var(--home-txt-2);
+}
+
+.home h2.highscoretm {
+  margin-bottom: 1.5em;
 }
 
 .gameover h2 {
@@ -563,4 +577,67 @@ input[type="file"]::-webkit-file-upload-button {
   overflow-y: scroll !important;
   padding: 20px;
   padding-right: 10px;
+}
+
+
+.game-controls {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  background: var(--main-bg);
+  text-align: center;
+  transition-duration: 250ms;
+  overflow-y: scroll;
+}
+
+.game-controls h1 {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.control-bunches {
+  display: flex;
+  width: 90vw;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 20em;
+  /* background: red; */
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px;
+}
+
+.control-bunches div {
+  /* background: blue; */
+  border: 1px solid var(--divider);
+  padding: 10px;
+}
+
+.controls-svg {
+  margin-top: 0.6em;
+  margin-bottom: 0.8em;
+}
+
+.controls-svg .key rect{
+  fill: transparent;
+  transition-duration: 250ms;
+  stroke-width: 2px;
+  stroke: var(--divider);
+}
+
+.controls-svg .key text {
+  font: bold 30px roboto_medium;
+  fill: var(--control-txt);
+}
+
+.controls-svg .key.active rect {
+  fill: var(--control-key-active);
+}
+
+h3.control-txt {
+  color: var(--control-txt2);
 }

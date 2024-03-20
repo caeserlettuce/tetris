@@ -70,6 +70,8 @@
 
       <p class="button" onclick="start_game_button()">start game</p>
 
+      <h2 class="highscoretm">highscore: <span class="score"></span></h2>
+
       <div class="divider"></div>
 
       <h2>settings</h2>
@@ -86,6 +88,8 @@
       </div>
       
       <p class="button" onclick="open_custom()">customise the game MORE!</p>
+
+      <p class="button" onclick="open_controls()">controls</p>
 
       <div class="replay-stuff">
         <div class="divider"></div>
@@ -108,6 +112,18 @@
 
         <h3 class="replay-error" style="opacity: 0; display: none;">an error occurred playing the replay.</h3>
 
+      </div>
+
+      <div class="two-player">
+        <div class="divider"></div>
+        <h1>two player game [indev]</h1>
+
+        <h3>now you can play against your friend or enemy or a stranger
+        <br><br>confused about controls? check the controls page (up further on the page)
+        </h3>
+
+        <p class="button" onclick="start_2p_game()">start two player game</p>
+        
       </div>
 
     </div>
@@ -143,6 +159,7 @@
     <div class="gameover" style="display: none; opacity: 0;">
       <h1>game over!</h1>
       <h2 class="scoretm">your score was: <span class="score"></span></h2>
+      <h2 class="highscoretm">highscore: <span class="score"></span></h2>
       <div class="divider"></div>
       <div class="replay-section replay-stuff">
         <h2>game replay:</h2>
@@ -194,6 +211,99 @@
       <div class="custom-css">
         <p contenteditable></p>
       </div>
+    </div>
+
+    <div class="game-controls"> <!-- style="display: none; opacity: 0;"> -->
+      <h1>game controls</h1>
+      <h3 class="secondary">here's all the buttons you can press for all the different things</h3>
+      <p class="button" onclick="close_controls()">close controls</p>
+
+      <div class="divider"></div>
+      <h2 style="margin-top: 0.5em;">normal game</h2>
+      <br>
+      <div class="control-bunches">
+        
+        <div>
+          <svg class="controls-svg" viewBox="0 0 604 304" style="height: 12.5em;">
+            <g style="transform: translate(0px, 0px)" class="key" key="escape">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="28" y="62">esc</text>
+            </g>
+            <g style="transform: translate(0px, 200px)" class="key" key="shiftleft">
+              <rect x="2" y="2" width="200" height="100"/>
+              <text x="65" y="64">shift</text>
+            </g>
+            <g style="transform: translate(300px, 100px)" class="key" key="q">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="42" y="58">q</text>
+            </g>
+            <g style="transform: translate(400px, 100px)" class="key" key="w">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="40" y="58">w</text>
+            </g>
+            <g style="transform: translate(300px, 200px)" class="key" key="a">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="43" y="60">a</text>
+            </g>
+            <g style="transform: translate(400px, 200px)" class="key" key="s">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="43" y="60">s</text>
+            </g>
+            <g style="transform: translate(500px, 200px)" class="key" key="d">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="43" y="60">d</text>
+            </g>
+
+
+          </svg>
+          <h3 class="control-txt">left & right arrows: move left & right
+            <br>up arrow / r: rotate piece
+            <br>down arrow: move piece down
+      
+          </h3>
+        </div>
+
+        <div>
+          <svg class="controls-svg" viewBox="0 0 704 304" style="height: 12.5em;">
+            <g style="transform: translate(0px, 0px)" class="key" key="escape">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="28" y="62">esc</text>
+            </g>
+            <g style="transform: translate(200px, 100px)" class="key" key="arrowup">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="42" y="60">↑</text>
+            </g>
+            <g style="transform: translate(100px, 200px)" class="key" key="arrowleft">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="38" y="64">←</text>
+            </g>
+            <g style="transform: translate(200px, 200px)" class="key" key="arrowdown">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="42" y="66">↓</text>
+            </g>
+            <g style="transform: translate(300px, 200px)" class="key" key="arrowright">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="38" y="64">→</text>
+            </g>
+            <g style="transform: translate(500px, 100px)" class="key" key="c">
+              <rect x="2" y="2" width="100" height="100"/>
+              <text x="43" y="60">c</text>
+            </g>
+            <g style="transform: translate(500px, 200px)" class="key" key="space">
+              <rect x="2" y="2" width="200" height="100"/>
+              <text x="63" y="63">space</text>
+            </g>
+          </svg>
+          <h3 class="control-txt">left & right arrows: move left & right
+            <br>up arrow / r: rotate piece
+            <br>down arrow: move piece down
+      
+          </h3>
+        </div>
+        
+      </div>
+      
+      
     </div>
 
     <style class="funny-css"></style>

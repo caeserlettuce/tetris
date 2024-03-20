@@ -41,6 +41,7 @@ var custom_open = false;
 var original_colours;
 var original_values = {};
 var original_for_replay = {};
+var controls_open = false;
 
 if (windowWidth < windowHeight) {
   // MOBILE!!!
@@ -479,10 +480,10 @@ function display_game(game) {
   }
 
   if (replay_active == false) {
-    if (setting_choices["highscore"] < game["score"]) {
-      setting_choices["highscore"] = game["score"];
-    }
-    save_settings();
+    // if (setting_choices["highscore"] < game["score"]) {
+    //   setting_choices["highscore"] = game["score"];
+    // }
+    // save_settings();
   }
 
 
@@ -674,8 +675,22 @@ function game_over() {
     //document.querySelector(".gameover .replay-data p").innerHTML = encoded_replay;
     // document.querySelector(".home .replay-data p").innerHTML = encoded_replay;
   }
-  document.querySelector(".scoretm .score").innerHTML = gamesave["score"];
 
+  if (localstorage["highscore"] == undefined) {
+    localstorage["highscore"] = 0;
+  }
+  var new_hs = false;
+  if (gamesave["score"] > localstorage["highscore"]) {
+    localstorage["highscore"] = gamesave["score"];
+    new_hs = true;
+  }
+  localStorage.setItem("dapuglol-tetris", JSON.stringify(localstorage));
+  
+  document.querySelector(".scoretm .score").innerHTML = gamesave["score"];
+  document.querySelector(".gameover .highscoretm .score").innerHTML = localstorage["highscore"];
+  if (new_hs == true) {
+    document.querySelector(".gameover .highscoretm .score").innerHTML += `<br><br>new high score!`
+  }
   show_page(".gameover");
 }
 
@@ -841,9 +856,15 @@ for (i in localstorage) {
   }
   setting_choices = copy_json(localstorage);
 }
-if (!setting_choices["highscore"]) {
-  setting_choices["highscore"] = 0;
+// if (!setting_choices["highscore"]) {
+//   setting_choices["highscore"] = 0;
+// }
+
+if (!localstorage["highscore"]) {
+  localstorage["highscore"] = 0;
+  localStorage.setItem("dapuglol-tetris", JSON.stringify(localstorage));  
 }
+document.querySelector(".home .highscoretm .score").innerHTML = localstorage["highscore"];
 
 if (!setting_choices["customs"]) {
   setting_choices["customs"] = {};
@@ -1070,9 +1091,30 @@ function user_hold() {
   }
 }
 
+function highlight_control(state, key) {
+  var key_name = key.toLowerCase().replace("key", "");
+  var keythings = document.querySelectorAll(`.controls-svg .key[key="${key_name}"]`);
+  for (i in keythings) {
+    if (state == true) {
+      try {
+        keythings[i].classList.add("active");
+      } catch (err) {
+
+      }
+    } else {
+      try {
+        keythings[i].classList.remove("active");
+      } catch (err) {
+
+      }
+    }
+  }
+}
+
 document.addEventListener('keydown', (event) => {
   var name = event.key;
   var keyid = event.which;
+  var keycode = event.code;
   // Alert the key name and key code on keydown
   //console.log(keyid)
 
@@ -1138,12 +1180,33 @@ document.addEventListener('keydown', (event) => {
         close_custom();
       } else if (game_end == true) {
         show_start_screen();
+      } else if (controls_open == true) {
+        close_controls();
       }
     } else if (keyid == 13) { // enter
       if (custom_open == false) {
         start_game_button();
       }
     }
+  }
+
+  if (controls_open == true) {
+    // controls highlighting
+    highlight_control(true, keycode);
+  }
+
+});
+
+document.addEventListener('keyup', (event) => {
+  var name = event.key;
+  var keyid = event.which;
+  var keycode = event.code;
+  // Alert the key name and key code on keydown
+  //console.log(keyid)
+
+  if (controls_open == true) {
+    // controls highlighting
+    highlight_control(false, keycode);    
   }
 
 });
@@ -1210,6 +1273,7 @@ function end_replay() {
   for (t in replay_timeouts) {
     clearTimeout(replay_timeouts[t])
   }
+  game_replay["name"] = `${gamesave["score"]}_${game_replay["name"]}`;
   replay_active = false;
   replay_gamesave = {};
   replay_timeouts = [];
@@ -1392,6 +1456,25 @@ function open_custom() {
 function close_custom() {
   hide_page(".game-custom");
   custom_open = false;
+}
+
+// controls screen !!!
+
+function open_controls() {
+  show_page(".game-controls");
+  controls_open = true;
+}
+function close_controls() {
+  hide_page(".game-controls");
+  controls_open = false;
+  var controls_buttons = document.querySelectorAll(".controls-svg .key");
+  for (i in controls_buttons) { // reset all the buttons just in case
+    try {
+      controls_buttons[i].classList.remove("active");
+    } catch (err) {
+
+    }
+  }
 }
 
 function apply_custom_css() {
