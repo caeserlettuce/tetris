@@ -34,6 +34,8 @@ var undo_history = [];
 var reset_undo_history = true;
 var replay_gamesave = {}; // for replaying
 var replay_timeouts = [];
+var replay_paused_time_amount = 0;
+var replay_latest_paused_date;
 var replay_active = false;
 var custom_open = false;
 var original_colours;
@@ -1083,6 +1085,11 @@ document.addEventListener('keydown', (event) => {
           document.querySelector(".pausemenu").style.opacity = "1";
         }, 10);
         game_paused = true;
+        game_replay["log"].push({
+          "time": new Date(),
+          "game": copy_json(gamesave),
+          "paused": true
+        });
       } else if (game_paused == true) {
 
         document.querySelector(".pausemenu").style.opacity = "0";
@@ -1092,6 +1099,11 @@ document.addEventListener('keydown', (event) => {
         clear_active_board();
         display_game(gamesave);
         game_paused = false;
+        game_replay["log"].push({
+          "time": new Date(),
+          "game": copy_json(gamesave),
+          "unpaused": true
+        });
       }
     } else if (keyid == 38) { // up
       if (game_paused == false && replay_active != true) {
@@ -1199,6 +1211,10 @@ function end_replay() {
     clearTimeout(replay_timeouts[t])
   }
   replay_active = false;
+  replay_gamesave = {};
+  replay_timeouts = [];
+  replay_paused_time_amount = 0;
+  replay_latest_paused_date = undefined;
   setting_choices = copy_json(original_for_replay["settings"]);
   show_start_screen();
 }
@@ -1243,6 +1259,17 @@ function play_replay() {
         setTimeout( () => {
           for (y in replay_gamesave["log"]) {
             var time = (Date.parse(replay_gamesave["log"][y]["time"]) - start_time );
+            
+            if (replay_gamesave["log"][y]["paused"] || replay_gamesave["log"][y]["unpaused"]) {
+              if (replay_gamesave["log"][y]["paused"] == true) {
+                replay_latest_paused_date = `${replay_gamesave["log"][y]["time"]}`;
+              }
+              if (replay_gamesave["log"][y]["unpaused"] == true) {
+                var time_lapsed = Date.parse(replay_gamesave["log"][y]["time"]) - Date.parse(replay_latest_paused_date);
+                replay_paused_time_amount += time_lapsed;
+                console.log("time lapsed!!", time_lapsed);
+              }
+            }
             //console.log(time);
             replay_timeouts.push(
               setTimeout( (index) => {
@@ -1251,9 +1278,9 @@ function play_replay() {
                 console.log(parseInt(index));
                 clear_active_board();
                 display_game(the_game);
-              }, time / speed, `${y}`)
+              }, ( time - replay_paused_time_amount ) / speed, `${y}`)
             );
-            last_timetm = time / speed;
+            last_timetm = ( time - replay_paused_time_amount ) / speed;
           }
           replay_timeouts.push(setTimeout(end_replay, last_timetm + 1000));
       
