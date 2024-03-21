@@ -213,7 +213,7 @@
       </div>
     </div>
 
-    <div class="game-controls"> <!-- style="display: none; opacity: 0;"> -->
+    <div class="game-controls" style="display: none; opacity: 0;">
       <h1>game controls</h1>
       <h3 class="secondary">here's all the buttons you can press for all the different things</h3>
       <p class="button" onclick="close_controls()">close controls</p>
@@ -256,11 +256,37 @@
 
 
           </svg>
-          <h3 class="control-txt">left & right arrows: move left & right
-            <br>up arrow / r: rotate piece
-            <br>down arrow: move piece down
-      
-          </h3>
+          <h2 class="control-txt" style="margin-top: 0.25em; margin-bottom: 0.5em;">(in multiplayer, this is player 1)</h2>
+          <table class="control-txt">
+            <tr>
+              <th>key(s)</th>
+              <th>action</th>
+            </tr>
+            <tr>
+              <td>a & d</td>
+              <td>move left & right</td>
+            </tr>
+            <tr>
+              <td>w</td>
+              <td>rotate piece</td>
+            </tr>
+            <tr>
+              <td>s</td>
+              <td>move piece down</td>
+            </tr>
+            <tr>
+              <td>q</td>
+              <td>hold piece</td>
+            </tr>
+            <tr>
+              <td>esc</td>
+              <td>pause game</td>
+            </tr>
+            <tr>
+              <td>shift</td>
+              <td>slam down</td>
+            </tr>
+          </table>
         </div>
 
         <div>
@@ -271,7 +297,7 @@
             </g>
             <g style="transform: translate(200px, 100px)" class="key" key="arrowup">
               <rect x="2" y="2" width="100" height="100"/>
-              <text x="42" y="60">↑</text>
+              <text x="45" y="60">↑</text>
             </g>
             <g style="transform: translate(100px, 200px)" class="key" key="arrowleft">
               <rect x="2" y="2" width="100" height="100"/>
@@ -279,7 +305,7 @@
             </g>
             <g style="transform: translate(200px, 200px)" class="key" key="arrowdown">
               <rect x="2" y="2" width="100" height="100"/>
-              <text x="42" y="66">↓</text>
+              <text x="45" y="66">↓</text>
             </g>
             <g style="transform: translate(300px, 200px)" class="key" key="arrowright">
               <rect x="2" y="2" width="100" height="100"/>
@@ -294,11 +320,37 @@
               <text x="63" y="63">space</text>
             </g>
           </svg>
-          <h3 class="control-txt">left & right arrows: move left & right
-            <br>up arrow / r: rotate piece
-            <br>down arrow: move piece down
-      
-          </h3>
+          <h2 class="control-txt" style="margin-top: 0.25em; margin-bottom: 0.5em;">(in multiplayer, this is player 2)</h2>
+          <table class="control-txt">
+            <tr>
+              <th>key(s)</th>
+              <th>action</th>
+            </tr>
+            <tr>
+              <td>left & right arrows</td>
+              <td>move left & right</td>
+            </tr>
+            <tr>
+              <td>up arrow</td>
+              <td>rotate piece</td>
+            </tr>
+            <tr>
+              <td>down arrow</td>
+              <td>move piece down</td>
+            </tr>
+            <tr>
+              <td>c</td>
+              <td>hold piece</td>
+            </tr>
+            <tr>
+              <td>esc</td>
+              <td>pause game</td>
+            </tr>
+            <tr>
+              <td>space</td>
+              <td>slam down</td>
+            </tr>
+          </table>
         </div>
         
       </div>

@@ -45,8 +45,8 @@
   --file-upload-border: #2b2b2b;
   --file-upload-button-bg: #2b2b2b;
   --error-txt: #ff6d6d;
-  --control-txt: #878787;
-  --control-txt2: #9d9d9d;
+  --control-txt: #b1b1b1;
+  --control-txt2: #c0c0c0;
   --control-key-active: #2a2a2a;
 }
 
@@ -638,6 +638,17 @@ input[type="file"]::-webkit-file-upload-button {
   fill: var(--control-key-active);
 }
 
-h3.control-txt {
+.control-txt {
   color: var(--control-txt2);
+}
+
+.control-bunches table {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.control-bunches table tr th, .control-bunches table tr td {
+  border: 1px solid var(--divider);
+  padding: 5px;
+  gap: 0px;
 }

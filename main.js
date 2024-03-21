@@ -1155,7 +1155,7 @@ document.addEventListener('keydown', (event) => {
       if (game_paused == false && replay_active != true) {
         user_slam();
       }
-    } else if (keyid == 67 && replay_active != true) { // c
+    } else if ( (keyid == 67 || keyid == 81 ) && replay_active != true) { // c or q
       if (game_paused == false) {
         if (show_hold == true) {
           user_hold();
